@@ -1,4 +1,5 @@
 require 'asciidoctor/reducer/api'
+require "semantic_logger"
 
 module WMULPurpleMercury
     module Build
