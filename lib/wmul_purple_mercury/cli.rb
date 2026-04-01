@@ -60,14 +60,65 @@ module WMULPurpleMercury
             return
           end
           create_build_folder = options.fetch(:create_build_folder)
+          antora_pages_folder = options.fetch(:antora_pages_folder)
+          begin
+            antora_pages_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(antora_pages_folder, create_build_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --antora_pages_folder #{e.message}")
+            return
+          end
+          WMULPurpleMercury::Build.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_pages_folder)
+        end
+      end
+
+      class CopyAntoraStaticFolder < Dry::CLI::Command
+        include SemanticLogger::Loggable
+
+        desc "Copies all of the files from the Antora static folder into the Antora build folder." 
+
+        option :antora_static_folder, default: :emptyoption, 
+          desc: "The folder containing all of the Antora static files."
+
+        option :antora_build_folder, default: :emptyoption, 
+          desc: "The location of the antora /antora/ folder."
+
+        option :create_build_folder, default: false, type: :boolean, 
+          desc: "If --antora_build_folder does not already exist, create it."
+
+        option :log_name, default: :emptyoption, desc: "The path to the log file."
+
+        option :log_level, default: 30, type: :integer, 
+          desc: "The log level: 0: Trace, 10: Debug, 20: Info, 30: Warning, 40: Error, 50: Fatal. Intermediate values 
+                (E.G. 32) are permitted, but will essentially be rounded down (E.G. Entering 32 is the same as entering 
+                30. Values beyond the 0-50 limit will be clamped to those limits. Logging messages lower than the log 
+                level will not be written to the log. E.G. If 30 is input, then all Debug, Info, and Trace messages 
+                will be silenced."
+
+        def call(**options)
+          begin
+            WMULPurpleMercury::CLI::LoggerSetup.setup_logger(options)
+          rescue ArgumentError => e
+            puts e.message
+            return
+          end
+          
+          logger.info("With #{options}")
+          antora_static_folder = options.fetch(:antora_static_folder)
+          begin
+            antora_static_folder = WMULPurpleMercury::CLI::Validators.validate_source_folder(antora_static_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --antora_static_folder #{e.message}")
+            return
+          end
+          create_build_folder = options.fetch(:create_build_folder)
           antora_build_folder = options.fetch(:antora_build_folder)
           begin
-            WMULPurpleMercury::CLI::Validators.validate_build_folder(antora_build_folder, create_build_folder)
+            antora_build_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(antora_build_folder, create_build_folder)
           rescue ArgumentError => e
             logger.fatal("Argument Bad: --antora_build_folder #{e.message}")
             return
           end
-          WMULPurpleMercury::Build.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_build_folder)
+          WMULPurpleMercury::Build.copy_antora_static_folder(antora_static_folder, antora_build_folder)
         end
       end
     end
@@ -184,6 +235,7 @@ module WMULPurpleMercury
 end
 
 WMULPurpleMercury::CLI::Commands.register "build_asciidoc_source_for_antora", WMULPurpleMercury::CLI::Commands::BuildAsciidocSourceForAntora
+WMULPurpleMercury::CLI::Commands.register "copy_antora_static_folder", WMULPurpleMercury::CLI::Commands::CopyAntoraStaticFolder
 WMULPurpleMercury::CLI::Commands.register "version",  WMULPurpleMercury::CLI::Commands::Version
 WMULPurpleMercury::CLI::Commands.register "v",  WMULPurpleMercury::CLI::Commands::Version
 

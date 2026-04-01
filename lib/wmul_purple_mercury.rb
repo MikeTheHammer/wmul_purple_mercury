@@ -12,6 +12,16 @@ module WMULPurpleMercury
         end
 
 
+
+
+        def self.copy_antora_static_folder(antora_static_folder, antora_build_folder)
+            logger.info("copy_antora_static_folder:: Antora Static Folder: #{antora_static_folder} , Antora Build Folder: #{antora_build_folder}")
+            antora_static_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(antora_static_folder, antora_build_folder)
+            antora_suffixes = [".adoc", ".yml", ".yaml"]
+            WMULPurpleMercury::Build.copy_files(antora_static_files, antora_suffixes)
+        end
+
+
         def self.build_asciidoc_source(asciidoc_source_folder, build_folder, excluded_suffixes, backend, book)
             logger.info("build_asciidoc_source:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Build Folder: #{build_folder} , Excluded Suffixes: #{excluded_suffixes} , Backend: #{backend} , Book: #{book}")
             asciidoc_source_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(asciidoc_source_folder, build_folder)
@@ -30,6 +40,20 @@ module WMULPurpleMercury
                 Asciidoctor::Reducer.reduce_file source_file, safe: :unsafe, to: destination_file, doctype: :book, attributes: "#{backend}=true"
             else
                 Asciidoctor::Reducer.reduce_file source_file, safe: :unsafe, to: destination_file, attributes: "#{backend}=true"
+            end
+        end
+
+        def self.copy_files(file_list, file_suffixes)
+            logger.info("copy_files:: File List: #{file_list} , File Suffixes: #{file_suffixes}")
+            file_list.each do |file_pair|
+                source_file = file_pair.source_file_name
+                destination_file = file_pair.destination_file_name
+                suffix = source_file.extname()
+                if file_suffixes.include?(suffix)
+                    destination_parent = destination_file.dirname()
+                    destination_parent.mkpath(mode: 0644)
+                    FileUtils.copy_file(source_file, destination_file)
+                end
             end
         end
     end
