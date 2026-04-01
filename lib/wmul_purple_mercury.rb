@@ -74,7 +74,7 @@ module WMULPurpleMercury
         end
 
         def self.strip_middle_suffix_from_filename(destination_file_name, middle_suffix)
-            puts "In FileNameManager.strip_middle_suffix_from_filename with Destination File Name: #{destination_file_name} , Middle Suffix: #{middle_suffix}"
+            logger.info("With Destination File Name: #{destination_file_name} , Middle Suffix: #{middle_suffix}")
             basename = File.basename(destination_file_name)
             lastIndexOfMiddleSuffix = basename.rindex(middle_suffix)
             if lastIndexOfMiddleSuffix
