@@ -1,0 +1,3 @@
+#!/usr/bin/env ruby
+
+require 'wmul_purple_mercury/cli'
