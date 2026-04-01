@@ -130,8 +130,14 @@ module WMULPurpleMercury
 
 
       def self.validate_log_name(log_name)
-        unless File.writable?(log_name)
+        dir_name = File.dirname(log_name)
+        unless File.writable?(dir_name)
           raise ArgumentError.new("#{log_name} is not writable.")
+        end
+        if File.exist?(log_name)
+          unless File.writable?(log_name)
+            raise ArgumentError.new("#{log_name} is not writable.")
+          end
         end
       end
     end
