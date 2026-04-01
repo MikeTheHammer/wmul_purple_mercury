@@ -2,6 +2,96 @@ require 'asciidoctor/reducer/api'
 require "semantic_logger"
 
 module WMULPurpleMercury
+    
+    module Setup
+        include SemanticLogger::Loggable
+
+        def self.create_symlinks_for_build(license, color, build_root, images_root, attachments_root)
+            build_root = build_root.expand_path()
+            images_root = images_root.expand_path()
+            attachments_root = attachments_root.expand_path()
+
+            images_color_license_path = images_root + color.name + license.name
+            images_path = build_root + "images"
+            WMULPurpleMercury::Setup.create_symlink_between_folders(images_color_license_path, images_path)
+
+            attachments_license_path = attachments_root + license.name
+            attachments_path = build_root + "attachments"
+            WMULPurpleMercury::Setup.create_symlink_between_folders(attachments_license_path, attachments_path)
+        end
+
+
+        def self.create_symlinks_for_common_items(images_root, attachments_root)
+            images_root = images_root.expand_path()
+            attachments_root = attachments_root.expand_path()
+
+            WMULPurpleMercury::Setup.create_symlinks_for_common_images(images_root)
+            WMULPurpleMercury::Setup.create_common_license_symlinks(attachments_root)
+        end
+
+
+        def self.create_symlinks_for_common_images(images_root)
+            color_path = images_root + "color"
+            common_color_path = images_root + "common_color"
+            WMULPurpleMercury::Setup.create_common_license_common_color_symlinks(color_path, common_color_path)
+
+            grayscale_path = images_root + "grayscale"
+            WMULPurpleMercury::Setup.create_common_license_common_color_symlinks(grayscale_path, common_color_path)
+
+            WMULPurpleMercury::Setup.create_common_license_symlinks(common_color_path)
+        end
+
+
+        def self.create_common_license_symlinks(root_path)
+            nd_path = root_path + "nd"
+            sa_path = root_path + "sa"
+            common_license_path = root_path + "common_license"
+
+            nd_common_license_path = nd_path + "common_license"
+            WMULPurpleMercury::Setup.create_symlink_between_folders(common_license_path, nd_common_license_path)
+
+            sa_common_license_path = sa_path + "common_license"
+            WMULPurpleMercury::Setup.create_symlink_between_folders(common_license_path, sa_common_license_path)
+        end
+        
+
+        def self.create_common_license_common_color_symlinks(color_path, common_color_path)
+            common_license_path = color_path + "common_license"
+            color_nd_path = color_path + "nd"
+            common_color_nd_path = common_color_path + "nd"
+            color_sa_path = color_path + "sa"
+            common_color_sa_path = common_color_path + "sa"
+
+            nd_common_license_path = color_nd_path + "common_license"
+            WMULPurpleMercury::Setup.create_symlink_between_folders(common_license_path, nd_common_license_path)
+            nd_common_color_path = color_nd_path + "common_color"
+            WMULPurpleMercury::Setup.create_symlink_between_folders(common_color_nd_path, nd_common_color_path)
+
+            sa_common_license_path = color_sa_path + "common_license"
+            WMULPurpleMercury::Setup.create_symlink_between_folders(common_license_path, sa_common_license_path)
+            sa_common_color_path = color_sa_path + "common_color"
+            WMULPurpleMercury::Setup.create_symlink_between_folders(common_color_sa_path, sa_common_color_path)
+        end
+
+
+        def self.create_symlink_between_folders(target_path, source_path)
+            logger.info("create_symlink_between_folders:: Target Path #{target_path} , Source Path: #{source_path}")
+            WMULPurpleMercury::Setup.check_if_path_exists_and_not_symlink(source_path)
+            if source_path.symlink?()
+                logger.info("#{source_path} already exists, unlinking.")
+                source_path.unlink()
+            end
+            source_path.make_symlink(target_path)
+        end
+
+        def self.check_if_path_exists_and_not_symlink(path_under_test)
+            if (path_under_test.exist?()) && (path_under_test.symlink?() == false)
+                logger.fatal("The path #{path_under_test} already exists, but it is not a symlink. Exiting...")
+                raise ArgumentError("The path #{path_under_test} already exists, but it is not a symlink. Exiting...")
+            end
+        end
+
+    end
     module Build
         include SemanticLogger::Loggable
 

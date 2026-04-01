@@ -3,7 +3,7 @@ require "semantic_logger"
 require_relative "../wmul_purple_mercury"
 
 module WMULPurpleMercury
-  VERSION = "0.0.1"
+  VERSION = "0.0.2"
 
   module CLI
     module Commands
@@ -17,6 +17,149 @@ module WMULPurpleMercury
         end
       end
 
+      class CreateSymlinksForBuild < Dry::CLI::Command
+        include SemanticLogger::Loggable
+
+        desc "Create the symlinks to the images/ and attachments/ folders from the build folders as appropriate for the 
+        specific components, license and color. E.G. point ./antora/modules/ROOT/images to ./images/sa/color to build 
+        the antora version of this document using share-alike color images."
+
+        option :license, default: "nd", values: %w[nd sa], desc: "Which set of images to use, either those for the 
+          Share-Alike version or for the No-Derivative version."
+
+        option :color, default: "color", values: %w[color grayscale], desc: "Which set of images to use, either those 
+          for the Color version or for the Grayscale version."
+
+        option :build_root, default: "./antora/modules/ROOT", desc: "The build root where the symlinks will originate.
+          E.G. ./antora/modules/ROOT"
+
+        option :create_missing_folders, default: false, type: :boolean, 
+          desc: "If any of the intermediate folders do not already exist, create them."
+
+        option :images_root, default: "./images", desc: "The root folder of the images. E.G. ./images"
+
+        option :attachments_root, default: "./attachments", desc: "The root folder of the attachments. E.G. 
+          ./attachments"
+
+        option :log_name, default: :emptyoption, desc: "The path to the log file."
+
+        option :log_level, default: 30, type: :integer, 
+          desc: "The log level: 0: Trace, 10: Debug, 20: Info, 30: Warning, 40: Error, 50: Fatal. Intermediate values 
+                (E.G. 32) are permitted, but will essentially be rounded down (E.G. Entering 32 is the same as entering 
+                30. Values beyond the 0-50 limit will be clamped to those limits. Logging messages lower than the log 
+                level will not be written to the log. E.G. If 30 is input, then all Debug, Info, and Trace messages 
+                will be silenced."
+        
+        def call(**options)
+          begin
+            WMULPurpleMercury::CLI::LoggerSetup.setup_logger(options)
+          rescue ArgumentError => e
+            puts e.message
+            return
+          end
+          
+          logger.info("With #{options}")
+
+          license = options.fetch(:license)
+          begin
+            license = WMULPurpleMercury::CLI::Validators.validate_license(license)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --license #{e.message}")
+          end
+
+          color = options.fetch(:color)
+          begin
+            color = WMULPurpleMercury::CLI::Validators.validate_color(color)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --color #{e.message}")
+          end
+
+          create_missing_folders = options.fetch(:create_missing_folders)
+          build_root = options.fetch(:build_root)
+          begin
+            build_root = WMULPurpleMercury::CLI::Validators.validate_build_folder(build_root, create_missing_folders)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --build_root #{e.message}")
+            return
+          end
+
+          images_root = options.fetch(:images_root)
+          begin
+            images_root = WMULPurpleMercury::CLI::Validators.validate_build_folder(images_root, create_missing_folders)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --images_root #{e.message}")
+            return
+          end
+
+          attachments_root = options.fetch(:attachments_root)
+          begin
+            attachments_root = WMULPurpleMercury::CLI::Validators.validate_build_folder(attachments_root, create_missing_folders)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --attachments_root #{e.message}")
+            return
+          end
+          WMULPurpleMercury::Setup.create_symlinks_for_build(license, color, build_root, images_root, attachments_root)
+
+        end
+      end
+
+
+      class CreateSymlinksForCommonItems < Dry::CLI::Command
+        include SemanticLogger::Loggable
+
+        desc "Create the symlinks within the images/ and attachments/ folders from the more specific folders to the 
+        common folders. E.G. point ./images/sa/color/common_color to ./images/sa/common_color . This permits common 
+        items to be shared between build types."
+
+        option :create_missing_folders, default: false, type: :boolean, 
+          desc: "If any of the intermediate folders do not already exist, create them."
+
+        option :images_root, default: "./images", desc: "The root folder of the images. E.G. ./images"
+
+        option :attachments_root, default: "./attachments", desc: "The root folder of the attachments. E.G. 
+          ./attachments"
+
+        option :log_name, default: :emptyoption, desc: "The path to the log file."
+
+        option :log_level, default: 30, type: :integer, 
+          desc: "The log level: 0: Trace, 10: Debug, 20: Info, 30: Warning, 40: Error, 50: Fatal. Intermediate values 
+                (E.G. 32) are permitted, but will essentially be rounded down (E.G. Entering 32 is the same as entering 
+                30. Values beyond the 0-50 limit will be clamped to those limits. Logging messages lower than the log 
+                level will not be written to the log. E.G. If 30 is input, then all Debug, Info, and Trace messages 
+                will be silenced."
+        
+        def call(**options)
+          begin
+            WMULPurpleMercury::CLI::LoggerSetup.setup_logger(options)
+          rescue ArgumentError => e
+            puts e.message
+            return
+          end
+          
+          logger.info("With #{options}")
+
+          create_missing_folders = options.fetch(:create_missing_folders)
+
+          images_root = options.fetch(:images_root)
+          begin
+            images_root = WMULPurpleMercury::CLI::Validators.validate_build_folder(images_root, create_missing_folders)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --images_root #{e.message}")
+            return
+          end
+
+          attachments_root = options.fetch(:attachments_root)
+          begin
+            attachments_root = WMULPurpleMercury::CLI::Validators.validate_build_folder(attachments_root, create_missing_folders)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --attachments_root #{e.message}")
+            return
+          end
+          WMULPurpleMercury::Setup.create_symlinks_for_common_items(images_root, attachments_root)
+        end
+      end
+
+
       class BuildAsciidocSourceForAntora < Dry::CLI::Command
         include SemanticLogger::Loggable
 
@@ -28,11 +171,11 @@ module WMULPurpleMercury
         option :asciidoc_source_folder, default: :emptyoption, 
           desc: "The folder containing all of the asciidoc files to be reduced."
 
-        option :antora_pages_folder, default: :emptyoption, 
-          desc: "The location of the antora /antora/modules/ROOT/pages/ folder."
+        option :antora_intermediate_folder, default: :emptyoption, 
+          desc: "The location of the intermediate folder into which the reduced asciidoc files should be written."
 
-        option :create_build_folder, default: false, type: :boolean, 
-          desc: "If --antora_pages_folder does not already exist, create it."
+        option :create_intermediate_folder, default: false, type: :boolean, 
+          desc: "If --antora_intermediate_folder does not already exist, create it."
 
         option :log_name, default: :emptyoption, desc: "The path to the log file."
 
@@ -59,15 +202,15 @@ module WMULPurpleMercury
             logger.fatal("Argument Bad: --asciidoc_source_folder #{e.message}")
             return
           end
-          create_build_folder = options.fetch(:create_build_folder)
-          antora_pages_folder = options.fetch(:antora_pages_folder)
+          create_intermediate_folder = options.fetch(:create_intermediate_folder)
+          antora_intermediate_folder = options.fetch(:antora_intermediate_folder)
           begin
-            antora_pages_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(antora_pages_folder, create_build_folder)
+            antora_intermediate_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(antora_intermediate_folder, create_intermediate_folder)
           rescue ArgumentError => e
-            logger.fatal("Argument Bad: --antora_pages_folder #{e.message}")
+            logger.fatal("Argument Bad: --antora_intermediate_folder #{e.message}")
             return
           end
-          WMULPurpleMercury::Build.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_pages_folder)
+          WMULPurpleMercury::Build.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_intermediate_folder)
         end
       end
 
@@ -153,7 +296,7 @@ module WMULPurpleMercury
         unless build_folder_path.exist?()
           if create_build_folder
             logger.info("validate_build_folder:: Creating build folder.")
-            build_folder_path.mkpath(0644)
+            build_folder_path.mkpath(mode: 0644)
           else
             raise ArgumentError.new("#{build_folder} does not exist. It needs to be created or the 
                                     --create_build_folder flag needs to be set.")            
@@ -195,6 +338,28 @@ module WMULPurpleMercury
           end
         end
       end
+
+
+      def self.validate_license(license)
+        if license.casecmp?("nd")
+          return :nd
+        elsif license.casecmp?("sa")
+          return :sa
+        else
+          raise ArgumentError.new(" is not a valid value. Expected: 'nd' or 'sa'. Received: #{license}")
+        end
+      end
+
+
+      def self.validate_color(color)
+        if color.casecmp?("color")
+          return :color
+        elsif color.casecmp?("grayscale")
+          return :grayscale
+        else
+          raise ArgumentError.new(" is not a valid value. Expected: 'color' or 'grayscale'. Received: #{color}")
+        end
+      end
     end
 
     module LoggerSetup
@@ -234,6 +399,9 @@ module WMULPurpleMercury
   end
 end
 
+
+WMULPurpleMercury::CLI::Commands.register "create_symlinks_for_build", WMULPurpleMercury::CLI::Commands::CreateSymlinksForBuild
+WMULPurpleMercury::CLI::Commands.register "create_symlinks_for_common_items", WMULPurpleMercury::CLI::Commands::CreateSymlinksForCommonItems
 WMULPurpleMercury::CLI::Commands.register "build_asciidoc_source_for_antora", WMULPurpleMercury::CLI::Commands::BuildAsciidocSourceForAntora
 WMULPurpleMercury::CLI::Commands.register "copy_antora_static_folder", WMULPurpleMercury::CLI::Commands::CopyAntoraStaticFolder
 WMULPurpleMercury::CLI::Commands.register "version",  WMULPurpleMercury::CLI::Commands::Version
