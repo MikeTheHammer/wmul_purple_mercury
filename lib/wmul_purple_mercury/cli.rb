@@ -75,7 +75,7 @@ module WMULPurpleMercury
     module Validators
       include SemanticLogger::Loggable 
       def self.validate_source_folder(source_folder)
-        logger.info("With #{source_folder}")
+        logger.info("validate_source_folder:: #{source_folder}")
         if source_folder == :emptyoption
           raise ArgumentError.new("is a required argument.")
         end
@@ -94,14 +94,14 @@ module WMULPurpleMercury
 
 
       def self.validate_build_folder(build_folder, create_build_folder)
-        logger.info("With #{build_folder}")
+        logger.info("validate_build_folder:: #{build_folder}")
         if build_folder == :emptyoption
           raise ArgumentError.new("is a required argument.")
         end
         build_folder_path = Pathname.new(build_folder)
         unless build_folder_path.exist?()
           if create_build_folder
-            logger.info("Creating build folder.")
+            logger.info("validate_build_folder:: Creating build folder.")
             build_folder_path.mkpath(0644)
           else
             raise ArgumentError.new("#{build_folder} does not exist. It needs to be created or the 

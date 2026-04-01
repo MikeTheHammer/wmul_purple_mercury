@@ -6,14 +6,14 @@ module WMULPurpleMercury
         include SemanticLogger::Loggable
 
         def self.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_pages_folder)
-            logger.info("With:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Antora Pages Folder: #{antora_pages_folder}")
+            logger.info("build_asciidoc_source_for_antora:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Antora Pages Folder: #{antora_pages_folder}")
             excluded_suffixes = [".src", ".prebuild", ".pdf"]
             WMULPurpleMercury::Build.build_asciidoc_source(asciidoc_source_folder, antora_pages_folder, excluded_suffixes, "antora", false)
         end
 
 
         def self.build_asciidoc_source(asciidoc_source_folder, build_folder, excluded_suffixes, backend, book)
-            logger.info("With:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Build Folder: #{build_folder} , Excluded Suffixes: #{excluded_suffixes} , Backend: #{backend} , Book: #{book}")
+            logger.info("build_asciidoc_source:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Build Folder: #{build_folder} , Excluded Suffixes: #{excluded_suffixes} , Backend: #{backend} , Book: #{book}")
             asciidoc_source_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(asciidoc_source_folder, build_folder)
             asciidoc_source_files.each do |file_pair|
                 unless WMULPurpleMercury::FileNameManager::file_name_contains_any_suffix?(file_pair.source_file_name, excluded_suffixes)
@@ -25,7 +25,7 @@ module WMULPurpleMercury
 
 
         def self.reduce_asciidoc(source_file, destination_file, backend, book)
-            logger.info("With:: Source File: #{source_file} , Destination File: #{destination_file} , Backend: #{backend} , Book: #{book}")
+            logger.info("reduce_asciidoc:: Source File: #{source_file} , Destination File: #{destination_file} , Backend: #{backend} , Book: #{book}")
             if book
                 Asciidoctor::Reducer.reduce_file source_file, safe: :unsafe, to: destination_file, doctype: :book, attributes: "#{backend}=true"
             else
@@ -39,7 +39,7 @@ module WMULPurpleMercury
         include SemanticLogger::Loggable
 
         def self.get_sorted_file_names(source_root, output_root, output_suffix = nil)
-            logger.info("With:: Source Root: #{source_root} , Output Root: #{output_root} , Output Suffix: #{output_suffix}")
+            logger.info("get_sorted_file_names:: Source Root: #{source_root} , Output Root: #{output_root} , Output Suffix: #{output_suffix}")
             file_paths = []
             Dir.glob("**/*.adoc", base: source_root).each do |file_name|
                 source_file_name = source_root + file_name
@@ -47,7 +47,7 @@ module WMULPurpleMercury
                 if output_suffix
                     destination_file_name = WMULPurpleMercury::FileNameManager.replace_suffix(destination_file_name.to_s(), output_suffix)
                 end
-                logger.info("File Pair:: Source File Name: #{source_file_name} , Destination File Name: #{destination_file_name}")
+                logger.info("get_sorted_file_names:: File Pair:: Source File Name: #{source_file_name} , Destination File Name: #{destination_file_name}")
                 fp = FilePair.new(source_file_name, destination_file_name)
                 file_paths << fp
             end
@@ -70,13 +70,13 @@ module WMULPurpleMercury
         end
 
         def self.file_name_contains_suffix?(file_name, suffix)
-            logger.info("With:: #{file_name} , Suffix: #{suffix}")
+            logger.info("file_name_contains_suffix?:: #{file_name} , Suffix: #{suffix}")
             basename = file_name.basename().to_s()
             return basename.include?(suffix)
         end
 
         def self.strip_middle_suffix_from_filename(destination_file_name, middle_suffix)
-            logger.info("With Destination File Name: #{destination_file_name} , Middle Suffix: #{middle_suffix}")
+            logger.info("strip_middle_suffix_from_filename:: Destination File Name: #{destination_file_name} , Middle Suffix: #{middle_suffix}")
             basename = destination_file_name.basename().to_s()
             lastIndexOfMiddleSuffix = basename.rindex(middle_suffix)
             if lastIndexOfMiddleSuffix
