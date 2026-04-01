@@ -21,18 +21,18 @@ module WMULPurpleMercury
         include SemanticLogger::Loggable
 
         desc "Recursively iterates through all of the asciidoc files inside --asciidoc_source_folder , runs 
-        asciidoc-reducer on them, and saves the output into --antora_build_folder. Files with the middle suffix .src 
+        asciidoc-reducer on them, and saves the output into --antora_pages_folder. Files with the middle suffix .src 
         .prebuild and .pdf are not reduced, although they can be included in the other files using the asciidoc 
         include[] directive." 
 
         option :asciidoc_source_folder, default: :emptyoption, 
           desc: "The folder containing all of the asciidoc files to be reduced."
 
-        option :antora_build_folder, default: :emptyoption, 
+        option :antora_pages_folder, default: :emptyoption, 
           desc: "The location of the antora /antora/modules/ROOT/pages/ folder."
 
         option :create_build_folder, default: false, type: :boolean, 
-          desc: "If --antora_build_folder does not already exist, create it."
+          desc: "If --antora_pages_folder does not already exist, create it."
 
         option :log_name, default: :emptyoption, desc: "The path to the log file."
 
@@ -54,7 +54,7 @@ module WMULPurpleMercury
           logger.info("With #{options}")
           asciidoc_source_folder = options.fetch(:asciidoc_source_folder)
           begin
-            WMULPurpleMercury::CLI::Validators.validate_source_folder(asciidoc_source_folder)
+            asciidoc_source_folder = WMULPurpleMercury::CLI::Validators.validate_source_folder(asciidoc_source_folder)
           rescue ArgumentError => e
             logger.fatal("Argument Bad: --asciidoc_source_folder #{e.message}")
             return
@@ -79,15 +79,17 @@ module WMULPurpleMercury
         if source_folder == :emptyoption
           raise ArgumentError.new("is a required argument.")
         end
-        unless File.exist?(source_folder)
+        source_folder_path = Pathname.new(source_folder)
+        unless source_folder_path.exist?()
           raise ArgumentError.new("#{source_folder} does not exist.")
         end
-        unless File.directory?(source_folder)
+        unless source_folder_path.directory?()
           raise ArgumentError.new("#{source_folder} is not a folder.")
         end
-        unless File.readable?(source_folder)
+        unless source_folder_path.readable?()
           raise ArgumentError.new("#{source_folder} is not readable.")
         end
+        return source_folder_path
       end
 
 
@@ -96,21 +98,23 @@ module WMULPurpleMercury
         if build_folder == :emptyoption
           raise ArgumentError.new("is a required argument.")
         end
-        unless File.exist?(build_folder)
+        build_folder_path = Pathname.new(build_folder)
+        unless build_folder_path.exist?()
           if create_build_folder
             logger.info("Creating build folder.")
-            Dir.mkdir(build_folder, 0644)
+            build_folder_path.mkpath(0644)
           else
             raise ArgumentError.new("#{build_folder} does not exist. It needs to be created or the 
                                     --create_build_folder flag needs to be set.")            
           end
         end
-        unless File.directory?(build_folder)
+        unless build_folder_path.directory?()
           raise ArgumentError.new("#{build_folder} is not a folder.")
         end
-        unless File.writable?(build_folder)
+        unless build_folder_path.writable?()
           raise ArgumentError.new("#{build_folder} is not writable.")
         end
+        return build_folder_path
       end
 
 

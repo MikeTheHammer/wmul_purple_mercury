@@ -5,10 +5,10 @@ module WMULPurpleMercury
     module Build
         include SemanticLogger::Loggable
 
-        def self.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_build_folder)
-            logger.info("With:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Antora Build Folder: #{antora_build_folder}")
+        def self.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_pages_folder)
+            logger.info("With:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Antora Pages Folder: #{antora_pages_folder}")
             excluded_suffixes = [".src", ".prebuild", ".pdf"]
-            WMULPurpleMercury::Build.build_asciidoc_source(asciidoc_source_folder, antora_build_folder, excluded_suffixes, "antora", false)
+            WMULPurpleMercury::Build.build_asciidoc_source(asciidoc_source_folder, antora_pages_folder, excluded_suffixes, "antora", false)
         end
 
 
@@ -42,10 +42,10 @@ module WMULPurpleMercury
             logger.info("With:: Source Root: #{source_root} , Output Root: #{output_root} , Output Suffix: #{output_suffix}")
             file_paths = []
             Dir.glob("**/*.adoc", base: source_root).each do |file_name|
-                source_file_name = File.join(source_root, file_name)
-                destination_file_name = File.join(output_root, file_name)
+                source_file_name = source_root + file_name
+                destination_file_name = output_root + file_name
                 if output_suffix
-                    destination_file_name = WMULPurpleMercury::FileNameManager.replace_suffix(destination_file_name, output_suffix)
+                    destination_file_name = WMULPurpleMercury::FileNameManager.replace_suffix(destination_file_name.to_s(), output_suffix)
                 end
                 logger.info("File Pair:: Source File Name: #{source_file_name} , Destination File Name: #{destination_file_name}")
                 fp = FilePair.new(source_file_name, destination_file_name)
@@ -55,10 +55,11 @@ module WMULPurpleMercury
         end
 
         def self.replace_suffix(original_file_name, new_suffix)
-            lastIndexOfDot = original_file_name.rindex(".")
+            original_file_name_string = original_file_name.to_s()
+            lastIndexOfDot = original_file_name_string.rindex(".")
             if lastIndexOfDot
-                basename = original_file_name[0, lastIndexOfDot]
-                return basename + new_suffix
+                basename = original_file_name_string[0, lastIndexOfDot]
+                return Pathname.new(basename + new_suffix)
             else
                 return original_file_name
             end
@@ -70,13 +71,13 @@ module WMULPurpleMercury
 
         def self.file_name_contains_suffix?(file_name, suffix)
             logger.info("With:: #{file_name} , Suffix: #{suffix}")
-            basename = File.basename(file_name)
+            basename = file_name.basename().to_s()
             return basename.include?(suffix)
         end
 
         def self.strip_middle_suffix_from_filename(destination_file_name, middle_suffix)
             logger.info("With Destination File Name: #{destination_file_name} , Middle Suffix: #{middle_suffix}")
-            basename = File.basename(destination_file_name)
+            basename = destination_file_name.basename().to_s()
             lastIndexOfMiddleSuffix = basename.rindex(middle_suffix)
             if lastIndexOfMiddleSuffix
                 before_suffix = basename[0, lastIndexOfMiddleSuffix]
@@ -84,8 +85,8 @@ module WMULPurpleMercury
                 after_suffix = after_suffix.gsub(middle_suffix, "")
                 basename = before_suffix + after_suffix
             end
-            parent = File.dirname(destination_file_name)
-            return File.join(parent, basename)
+            parent = destination_file_name.dirname()
+            return parent + basename
         end
     end
 
