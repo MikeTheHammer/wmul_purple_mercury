@@ -3,7 +3,7 @@ require "semantic_logger"
 require_relative "../wmul_purple_mercury"
 
 module WMULPurpleMercury
-  VERSION = "0.0.3"
+  VERSION = "0.0.4"
 
   module CLI
     module Commands
@@ -302,6 +302,54 @@ module WMULPurpleMercury
           WMULPurpleMercury::Build.copy_antora_static_folder(antora_static_folder, antora_build_folder)
         end
       end
+
+
+      class CopyRenderedItems < Dry::CLI::Command
+        include SemanticLogger::Loggable
+
+        desc "Copies all of the rendeded files from the renders folder to their final destination." 
+
+        option :renders_folder, default: :emptyoption, 
+          desc: "The folder containing all of the rendered files."
+
+        option :destination_folder, default: :emptyoption, 
+          desc: "The final destination of the rendered files."
+
+        option :log_name, default: :emptyoption, desc: "The path to the log file."
+
+        option :log_level, default: 30, type: :integer, 
+          desc: "The log level: 0: Trace, 10: Debug, 20: Info, 30: Warning, 40: Error, 50: Fatal. Intermediate values 
+                (E.G. 32) are permitted, but will essentially be rounded down (E.G. Entering 32 is the same as entering 
+                30. Values beyond the 0-50 limit will be clamped to those limits. Logging messages lower than the log 
+                level will not be written to the log. E.G. If 30 is input, then all Debug, Info, and Trace messages 
+                will be silenced."
+
+        def call(**options)
+          begin
+            WMULPurpleMercury::CLI::LoggerSetup.setup_logger(options)
+          rescue ArgumentError => e
+            puts e.message
+            return
+          end
+          
+          logger.info("With #{options}")
+          renders_folder = options.fetch(:renders_folder)
+          begin
+            renders_folder = WMULPurpleMercury::CLI::Validators.validate_source_folder(renders_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --renders_folder #{e.message}")
+            return
+          end
+          destination_folder = options.fetch(:destination_folder)
+          begin
+            destination_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(destination_folder, true)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --destination_folder #{e.message}")
+            return
+          end
+          WMULPurpleMercury::Build.copy_rendered_items(renders_folder, destination_folder)
+        end
+      end
     end
 
     module Validators
@@ -441,8 +489,13 @@ end
 WMULPurpleMercury::CLI::Commands.register "create_symlinks_for_build", WMULPurpleMercury::CLI::Commands::CreateSymlinksForBuild
 WMULPurpleMercury::CLI::Commands.register "create_symlinks_for_common_items", WMULPurpleMercury::CLI::Commands::CreateSymlinksForCommonItems
 WMULPurpleMercury::CLI::Commands.register "clean_build_folder", WMULPurpleMercury::CLI::Commands::CleanBuildFolder
+
 WMULPurpleMercury::CLI::Commands.register "build_asciidoc_source_for_antora", WMULPurpleMercury::CLI::Commands::BuildAsciidocSourceForAntora
 WMULPurpleMercury::CLI::Commands.register "copy_antora_static_folder", WMULPurpleMercury::CLI::Commands::CopyAntoraStaticFolder
+
+
+WMULPurpleMercury::CLI::Commands.register "copy_rendered_items", WMULPurpleMercury::CLI::Commands::CopyRenderedItems
+
 WMULPurpleMercury::CLI::Commands.register "version",  WMULPurpleMercury::CLI::Commands::Version
 WMULPurpleMercury::CLI::Commands.register "v",  WMULPurpleMercury::CLI::Commands::Version
 

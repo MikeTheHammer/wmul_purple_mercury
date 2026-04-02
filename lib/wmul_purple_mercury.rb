@@ -1,4 +1,5 @@
 require 'asciidoctor/reducer/api'
+require 'fileutils'
 require "semantic_logger"
 
 module WMULPurpleMercury
@@ -92,6 +93,9 @@ module WMULPurpleMercury
         end
 
     end
+
+
+
     module Build
         include SemanticLogger::Loggable
 
@@ -110,7 +114,7 @@ module WMULPurpleMercury
             logger.info("copy_antora_static_folder:: Antora Static Folder: #{antora_static_folder} , Antora Build Folder: #{antora_build_folder}")
             antora_static_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(antora_static_folder, antora_build_folder)
             antora_suffixes = [".adoc", ".yml", ".yaml"]
-            WMULPurpleMercury::Build.copy_files(antora_static_files, antora_suffixes)
+            WMULPurpleMercury::Build.copy_files_having_suffix(antora_static_files, antora_suffixes)
         end
 
 
@@ -135,8 +139,9 @@ module WMULPurpleMercury
             end
         end
 
-        def self.copy_files(file_list, file_suffixes)
-            logger.info("copy_files:: File List: #{file_list} , File Suffixes: #{file_suffixes}")
+
+        def self.copy_files_having_suffix(file_list, file_suffixes)
+            logger.info("copy_files_having_suffix:: File List: #{file_list} , File Suffixes: #{file_suffixes}")
             file_list.each do |file_pair|
                 source_file = file_pair.source_file_name
                 destination_file = file_pair.destination_file_name
@@ -148,7 +153,14 @@ module WMULPurpleMercury
                 end
             end
         end
+
+
+        def self.copy_rendered_items(source_folder, destination_folder)
+            logger.info("copy_rendered_items:: Source Folder: #{source_folder} , Destination Folder: #{destination_folder}")
+            FileUtils.cp_r(source_folder, destination_folder, remove_destination:  true)
+        end
     end
+
 
 
     module FileNameManager
