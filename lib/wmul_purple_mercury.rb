@@ -95,14 +95,16 @@ module WMULPurpleMercury
     module Build
         include SemanticLogger::Loggable
 
+        def self.clean_build_folder(build_folder)
+            build_folder.rmtree(secure: true)
+            build_folder.mkpath(mode: 0744)
+        end
+
         def self.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_pages_folder)
             logger.info("build_asciidoc_source_for_antora:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Antora Pages Folder: #{antora_pages_folder}")
             excluded_suffixes = [".src", ".prebuild", ".pdf"]
             WMULPurpleMercury::Build.build_asciidoc_source(asciidoc_source_folder, antora_pages_folder, excluded_suffixes, "antora", false)
         end
-
-
-
 
         def self.copy_antora_static_folder(antora_static_folder, antora_build_folder)
             logger.info("copy_antora_static_folder:: Antora Static Folder: #{antora_static_folder} , Antora Build Folder: #{antora_build_folder}")

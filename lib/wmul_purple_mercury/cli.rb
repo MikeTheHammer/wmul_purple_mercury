@@ -3,7 +3,7 @@ require "semantic_logger"
 require_relative "../wmul_purple_mercury"
 
 module WMULPurpleMercury
-  VERSION = "0.0.2"
+  VERSION = "0.0.3"
 
   module CLI
     module Commands
@@ -156,6 +156,44 @@ module WMULPurpleMercury
             return
           end
           WMULPurpleMercury::Setup.create_symlinks_for_common_items(images_root, attachments_root)
+        end
+      end
+
+
+      class CleanBuildFolder < Dry::CLI::Command
+        include SemanticLogger::Loggable
+
+        desc "Deletes and re-creates a build folder." 
+
+        option :build_folder, default: :emptyoption, 
+          desc: "The folder to be deleted and re-created."
+
+        option :log_name, default: :emptyoption, desc: "The path to the log file."
+
+        option :log_level, default: 30, type: :integer, 
+          desc: "The log level: 0: Trace, 10: Debug, 20: Info, 30: Warning, 40: Error, 50: Fatal. Intermediate values 
+                (E.G. 32) are permitted, but will essentially be rounded down (E.G. Entering 32 is the same as entering 
+                30. Values beyond the 0-50 limit will be clamped to those limits. Logging messages lower than the log 
+                level will not be written to the log. E.G. If 30 is input, then all Debug, Info, and Trace messages 
+                will be silenced."
+
+        def call(**options)
+          begin
+            WMULPurpleMercury::CLI::LoggerSetup.setup_logger(options)
+          rescue ArgumentError => e
+            puts e.message
+            return
+          end
+          
+          logger.info("With #{options}")
+          build_folder = options.fetch(:build_folder)
+          begin
+            build_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(build_folder, true)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --build_folder #{e.message}")
+            return
+          end
+          WMULPurpleMercury::Build.clean_build_folder(build_folder)
         end
       end
 
@@ -402,6 +440,7 @@ end
 
 WMULPurpleMercury::CLI::Commands.register "create_symlinks_for_build", WMULPurpleMercury::CLI::Commands::CreateSymlinksForBuild
 WMULPurpleMercury::CLI::Commands.register "create_symlinks_for_common_items", WMULPurpleMercury::CLI::Commands::CreateSymlinksForCommonItems
+WMULPurpleMercury::CLI::Commands.register "clean_build_folder", WMULPurpleMercury::CLI::Commands::CleanBuildFolder
 WMULPurpleMercury::CLI::Commands.register "build_asciidoc_source_for_antora", WMULPurpleMercury::CLI::Commands::BuildAsciidocSourceForAntora
 WMULPurpleMercury::CLI::Commands.register "copy_antora_static_folder", WMULPurpleMercury::CLI::Commands::CopyAntoraStaticFolder
 WMULPurpleMercury::CLI::Commands.register "version",  WMULPurpleMercury::CLI::Commands::Version
