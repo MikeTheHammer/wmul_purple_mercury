@@ -304,6 +304,61 @@ module WMULPurpleMercury
       end
 
 
+      class BuildAsciidocSourceForPDF < Dry::CLI::Command
+        include SemanticLogger::Loggable
+
+        desc "Recursively iterates through all of the asciidoc files inside --asciidoc_source_folder , runs 
+        asciidoc-reducer on them, and saves the output into --pdf_intermediate. Files with the middle suffix .src 
+        .prebuild and .antora are not reduced, although they can be included in the other files using the asciidoc 
+        include[] directive." 
+
+        option :asciidoc_source_folder, default: :emptyoption, 
+          desc: "The folder containing all of the asciidoc files to be reduced."
+
+        option :pdf_intermediate_folder, default: :emptyoption, 
+          desc: "The location of the intermediate folder into which the reduced asciidoc files should be written."
+
+        option :create_intermediate_folder, default: false, type: :boolean, 
+          desc: "If --antora_intermediate_folder does not already exist, create it."
+
+        option :log_name, default: :emptyoption, desc: "The path to the log file."
+
+        option :log_level, default: 30, type: :integer, 
+          desc: "The log level: 0: Trace, 10: Debug, 20: Info, 30: Warning, 40: Error, 50: Fatal. Intermediate values 
+                (E.G. 32) are permitted, but will essentially be rounded down (E.G. Entering 32 is the same as entering 
+                30. Values beyond the 0-50 limit will be clamped to those limits. Logging messages lower than the log 
+                level will not be written to the log. E.G. If 30 is input, then all Debug, Info, and Trace messages 
+                will be silenced."
+
+        def call(**options)
+          begin
+            WMULPurpleMercury::CLI::LoggerSetup.setup_logger(options)
+          rescue ArgumentError => e
+            puts e.message
+            return
+          end
+          
+          logger.info("With #{options}")
+          asciidoc_source_folder = options.fetch(:asciidoc_source_folder)
+          begin
+            asciidoc_source_folder = WMULPurpleMercury::CLI::Validators.validate_source_folder(asciidoc_source_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --asciidoc_source_folder #{e.message}")
+            return
+          end
+          create_intermediate_folder = options.fetch(:create_intermediate_folder)
+          pdf_intermediate_folder = options.fetch(:pdf_intermediate_folder)
+          begin
+            pdf_intermediate_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(pdf_intermediate_folder, create_intermediate_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --pdf_intermediate_folder #{e.message}")
+            return
+          end
+          WMULPurpleMercury::Build.build_asciidoc_source_for_pdf(asciidoc_source_folder, pdf_intermediate_folder)
+        end
+      end
+
+
       class CopyRenderedItems < Dry::CLI::Command
         include SemanticLogger::Loggable
 
@@ -492,6 +547,8 @@ WMULPurpleMercury::CLI::Commands.register "clean_build_folder", WMULPurpleMercur
 
 WMULPurpleMercury::CLI::Commands.register "build_asciidoc_source_for_antora", WMULPurpleMercury::CLI::Commands::BuildAsciidocSourceForAntora
 WMULPurpleMercury::CLI::Commands.register "copy_antora_static_folder", WMULPurpleMercury::CLI::Commands::CopyAntoraStaticFolder
+
+WMULPurpleMercury::CLI::Commands.register "build_asciidoc_source_for_pdf", WMULPurpleMercury::CLI::Commands::BuildAsciidocSourceForPDF
 
 
 WMULPurpleMercury::CLI::Commands.register "copy_rendered_items", WMULPurpleMercury::CLI::Commands::CopyRenderedItems

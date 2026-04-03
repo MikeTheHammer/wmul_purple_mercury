@@ -118,6 +118,13 @@ module WMULPurpleMercury
         end
 
 
+        def self.build_asciidoc_source_for_pdf(asciidoc_source_folder, pdf_intermediate_folder)
+            logger.info("build_asciidoc_source_for_pdf:: AsciiDoc Source Folder: #{asciidoc_source_folder} , PDF Intermediate Folder: #{pdf_intermediate_folder}")
+            excluded_suffixes = [".src", ".prebuild", ".antora"]
+            WMULPurpleMercury::Build.build_asciidoc_source(asciidoc_source_folder, pdf_intermediate_folder, excluded_suffixes, "pdf", true)
+        end
+
+
         def self.build_asciidoc_source(asciidoc_source_folder, build_folder, excluded_suffixes, backend, book)
             logger.info("build_asciidoc_source:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Build Folder: #{build_folder} , Excluded Suffixes: #{excluded_suffixes} , Backend: #{backend} , Book: #{book}")
             asciidoc_source_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(asciidoc_source_folder, build_folder)
