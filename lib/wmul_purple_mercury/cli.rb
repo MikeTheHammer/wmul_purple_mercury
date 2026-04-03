@@ -202,8 +202,8 @@ module WMULPurpleMercury
         include SemanticLogger::Loggable
 
         desc "Recursively iterates through all of the asciidoc files inside --asciidoc_source_folder , runs 
-        asciidoc-reducer on them, and saves the output into --antora_pages_folder. Files with the middle suffix .src 
-        .prebuild and .pdf are not reduced, although they can be included in the other files using the asciidoc 
+        asciidoc-reducer on them, and saves the output into --antora_intermediate_folder. Files with the middle suffix 
+        .src .prebuild and .pdf are not reduced, although they can be included in the other files using the asciidoc 
         include[] directive." 
 
         option :asciidoc_source_folder, default: :emptyoption, 

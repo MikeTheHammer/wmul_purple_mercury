@@ -104,10 +104,10 @@ module WMULPurpleMercury
             build_folder.mkpath(mode: 0744)
         end
 
-        def self.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_pages_folder)
-            logger.info("build_asciidoc_source_for_antora:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Antora Pages Folder: #{antora_pages_folder}")
+        def self.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_intermediate_folder)
+            logger.info("build_asciidoc_source_for_antora:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Antora Intermediate Folder: #{antora_intermediate_folder}")
             excluded_suffixes = [".src", ".prebuild", ".pdf"]
-            WMULPurpleMercury::Build.build_asciidoc_source(asciidoc_source_folder, antora_pages_folder, excluded_suffixes, "antora", false)
+            WMULPurpleMercury::Build.build_asciidoc_source(asciidoc_source_folder, antora_intermediate_folder, excluded_suffixes, "antora", false)
         end
 
         def self.copy_antora_static_folder(antora_static_folder, antora_build_folder)
