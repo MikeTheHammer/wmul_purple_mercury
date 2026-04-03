@@ -3,7 +3,7 @@ require "semantic_logger"
 require_relative "../wmul_purple_mercury"
 
 module WMULPurpleMercury
-  VERSION = "0.0.4"
+  VERSION = "0.0.5"
 
   module CLI
     module Commands
@@ -359,6 +359,58 @@ module WMULPurpleMercury
       end
 
 
+      class CopyPDFStaticFolder < Dry::CLI::Command
+        include SemanticLogger::Loggable
+
+        desc "Copies all of the files from the pdf static folder into the pdf build folder." 
+
+        option :pdf_static_folder, default: :emptyoption, 
+          desc: "The folder containing all of the pdf static files."
+
+        option :pdf_build_folder, default: :emptyoption, 
+          desc: "The location of the pdf build folder."
+
+        option :create_build_folder, default: false, type: :boolean, 
+          desc: "If --pdf_build_folder does not already exist, create it."
+
+        option :log_name, default: :emptyoption, desc: "The path to the log file."
+
+        option :log_level, default: 30, type: :integer, 
+          desc: "The log level: 0: Trace, 10: Debug, 20: Info, 30: Warning, 40: Error, 50: Fatal. Intermediate values 
+                (E.G. 32) are permitted, but will essentially be rounded down (E.G. Entering 32 is the same as entering 
+                30. Values beyond the 0-50 limit will be clamped to those limits. Logging messages lower than the log 
+                level will not be written to the log. E.G. If 30 is input, then all Debug, Info, and Trace messages 
+                will be silenced."
+
+        def call(**options)
+          begin
+            WMULPurpleMercury::CLI::LoggerSetup.setup_logger(options)
+          rescue ArgumentError => e
+            puts e.message
+            return
+          end
+          
+          logger.info("With #{options}")
+          pdf_static_folder = options.fetch(:pdf_static_folder)
+          begin
+            pdf_static_folder = WMULPurpleMercury::CLI::Validators.validate_source_folder(pdf_static_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --pdf_static_folder #{e.message}")
+            return
+          end
+          create_build_folder = options.fetch(:create_build_folder)
+          pdf_build_folder = options.fetch(:pdf_build_folder)
+          begin
+            pdf_build_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(pdf_build_folder, create_build_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --pdf_build_folder #{e.message}")
+            return
+          end
+          WMULPurpleMercury::Build.copy_pdf_static_folder(pdf_static_folder, pdf_build_folder)
+        end
+      end
+
+
       class CopyRenderedItems < Dry::CLI::Command
         include SemanticLogger::Loggable
 
@@ -549,6 +601,7 @@ WMULPurpleMercury::CLI::Commands.register "build_asciidoc_source_for_antora", WM
 WMULPurpleMercury::CLI::Commands.register "copy_antora_static_folder", WMULPurpleMercury::CLI::Commands::CopyAntoraStaticFolder
 
 WMULPurpleMercury::CLI::Commands.register "build_asciidoc_source_for_pdf", WMULPurpleMercury::CLI::Commands::BuildAsciidocSourceForPDF
+WMULPurpleMercury::CLI::Commands.register "copy_pdf_static_folder", WMULPurpleMercury::CLI::Commands::CopyPDFStaticFolder
 
 
 WMULPurpleMercury::CLI::Commands.register "copy_rendered_items", WMULPurpleMercury::CLI::Commands::CopyRenderedItems

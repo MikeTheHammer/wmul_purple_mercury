@@ -125,6 +125,14 @@ module WMULPurpleMercury
         end
 
 
+        def self.copy_pdf_static_folder(pdf_static_folder, pdf_build_folder)
+            logger.info("copy_pdf_static_folder:: PDF Static Folder: #{pdf_static_folder} , PDF Build Folder: #{pdf_build_folder}")
+            pdf_static_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(pdf_static_folder, pdf_build_folder)
+            pdf_suffixes = [".adoc", ".yml", ".yaml", ".ttf"]
+            WMULPurpleMercury::Build.copy_files_having_suffix(pdf_static_files, pdf_suffixes)
+        end
+
+
         def self.build_asciidoc_source(asciidoc_source_folder, build_folder, excluded_suffixes, backend, book)
             logger.info("build_asciidoc_source:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Build Folder: #{build_folder} , Excluded Suffixes: #{excluded_suffixes} , Backend: #{backend} , Book: #{book}")
             asciidoc_source_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(asciidoc_source_folder, build_folder)
