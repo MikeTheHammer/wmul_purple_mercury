@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name                    = "wmul_purple_mercury"
-  s.version                 = "0.0.5"
+  s.version                 = "0.0.6"
   s.authors                 = ["Mike Stanley"]
   s.description             = "The build engine for WMUL-FM's Operations Manuals."
   s.email                   = "stanley50@marshall.edu"
@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   s.required_ruby_version   = "3.4.9"
   s.executables             << "purple_mercury"
   s.add_runtime_dependency("asciidoctor", "~> 2.0", ">= 2.0.26")
+  s.add_runtime_dependency("asciidoctor-pdf", "~> 2.3", ">= 2.3.24")
   s.add_runtime_dependency("asciidoctor-reducer", "~> 1.1", ">= 1.1.2") 
   s.add_runtime_dependency("dry-cli", "~> 1.1")
 end

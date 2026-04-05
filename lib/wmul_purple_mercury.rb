@@ -1,3 +1,4 @@
+require 'asciidoctor-pdf'
 require 'asciidoctor/reducer/api'
 require 'fileutils'
 require "semantic_logger"
@@ -133,6 +134,22 @@ module WMULPurpleMercury
         end
 
 
+        def self.build_prebuild_asciidocs_to_pdf(asciidoc_source_folder, pdf_build_folder)
+            pdf_prebuild_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(asciidoc_source_folder, pdf_build_folder)
+            required_suffixes = [".prebuild", ".adoc"]
+
+            pdf_prebuild_files.each do |file_pair|
+                if WMULPurpleMercury::FileNameManager.file_name_contains_all_suffixes?(file_pair.source_file_name, required_suffixes)
+                    destination_file_name = WMULPurpleMercury::FileNameManager.strip_middle_suffix_from_filename(file_pair.destination_file_name, ".prebuild")
+                    destination_file_name = destination_file_name.sub_ext(".pdf")
+                    WMULPurpleMercury::Build.convert_asciidoc_file_to_pdf(file_pair.source_file_name, destination_file_name)
+                end
+            end
+
+        end
+
+
+
         def self.build_asciidoc_source(asciidoc_source_folder, build_folder, excluded_suffixes, backend, book)
             logger.info("build_asciidoc_source:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Build Folder: #{build_folder} , Excluded Suffixes: #{excluded_suffixes} , Backend: #{backend} , Book: #{book}")
             asciidoc_source_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(asciidoc_source_folder, build_folder)
@@ -152,6 +169,14 @@ module WMULPurpleMercury
             else
                 Asciidoctor::Reducer.reduce_file source_file, safe: :unsafe, to: destination_file, attributes: "#{backend}=true"
             end
+        end
+
+
+        def self.convert_asciidoc_file_to_pdf(input_file, output_file)
+            logger.info("convert_asciidoc_file_to_pdf:: Input File: #{input_file} , Output File: #{output_file}")
+            basedir = input_file.parent()
+            Dir.chdir(basedir)
+            Asciidoctor.convert_file input_file.to_s(), safe: :unsafe, backend: 'pdf', doctype: :book, to_file: output_file.to_s(), attributes: "pdf=true", mkdirs: true, base_dir: basedir.to_s()
         end
 
 
@@ -206,6 +231,10 @@ module WMULPurpleMercury
             else
                 return original_file_name
             end
+        end
+
+        def self.file_name_contains_all_suffixes?(file_name, suffixes)
+            return suffixes.all? { |suffix| WMULPurpleMercury::FileNameManager.file_name_contains_suffix?(file_name, suffix) }
         end
 
         def self.file_name_contains_any_suffix?(file_name, suffixes)
