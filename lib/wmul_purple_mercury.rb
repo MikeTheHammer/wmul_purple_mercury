@@ -179,6 +179,17 @@ module WMULPurpleMercury
 
     end
 
+    module EPub
+        include SemanticLogger::Loggable
+
+        def self.build_asciidoc_source_for_epub(asciidoc_source_folder, epub_intermediate_folder)
+            logger.info("build_asciidoc_source_for_epub:: AsciiDoc Source Folder: #{asciidoc_source_folder} , ePub Intermediate Folder: #{epub_intermediate_folder}")
+            excluded_suffixes = [".src", ".prebuild", ".antora", ".pdf"]
+            WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, epub_intermediate_folder, excluded_suffixes, "epub", true)
+        end
+
+    end
+
 
 
     module BuildCommon

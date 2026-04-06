@@ -3,7 +3,7 @@ require "semantic_logger"
 require_relative "../wmul_purple_mercury"
 
 module WMULPurpleMercury
-  VERSION = "0.0.7"
+  VERSION = "0.0.8"
 
   module CLI
     module Commands
@@ -634,7 +634,7 @@ module WMULPurpleMercury
             logger.fatal("Argument Bad: --epub_intermediate_folder #{e.message}")
             return
           end
-          WMULPurpleMercury::Build.build_asciidoc_source_for_epub(asciidoc_source_folder, epub_intermediate_folder)
+          WMULPurpleMercury::EPub.build_asciidoc_source_for_epub(asciidoc_source_folder, epub_intermediate_folder)
         end
       end
 
@@ -788,6 +788,8 @@ WMULPurpleMercury::CLI::Commands.register "build_asciidoc_source_for_pdf", WMULP
 WMULPurpleMercury::CLI::Commands.register "copy_pdf_static_folder", WMULPurpleMercury::CLI::Commands::CopyPDFStaticFolder
 WMULPurpleMercury::CLI::Commands.register "build_prebuild_asciidocs_to_pdf", WMULPurpleMercury::CLI::Commands::BuildPreBuildAsciidocsToPDF
 WMULPurpleMercury::CLI::Commands.register "build_pdfs", WMULPurpleMercury::CLI::Commands::BuildPDFs
+
+WMULPurpleMercury::CLI::Commands.register "build_asciidoc_source_for_epub", WMULPurpleMercury::CLI::Commands::BuildAsciidocSourceForEPub
 
 WMULPurpleMercury::CLI::Commands.register "copy_rendered_items", WMULPurpleMercury::CLI::Commands::CopyRenderedItems
 
