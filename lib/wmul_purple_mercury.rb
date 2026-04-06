@@ -183,12 +183,16 @@ module WMULPurpleMercury
         def self.copy_files_having_suffix(file_list, file_suffixes)
             logger.info("copy_files_having_suffix:: File List: #{file_list} , File Suffixes: #{file_suffixes}")
             file_list.each do |file_pair|
+                logger.info("Considering:: Source: #{file_pair.source_file_name} , Destination: #{file_pair.destination_file_name}")
                 source_file = file_pair.source_file_name
                 destination_file = file_pair.destination_file_name
                 suffix = source_file.extname()
                 if file_suffixes.include?(suffix)
+                    logger.info("Copying:: Source: #{file_pair.source_file_name} , Destination: #{file_pair.destination_file_name}")
                     destination_parent = destination_file.dirname()
-                    destination_parent.mkpath(mode: 0644)
+                    logger.info("Making Parent:: #{destination_parent}")
+                    destination_parent.mkpath(mode: 0744)
+                    logger.info("Parent Created.")
                     FileUtils.copy_file(source_file, destination_file)
                 end
             end
