@@ -9,6 +9,8 @@ module WMULPurpleMercury
     module Commands
       extend Dry::CLI::Registry
 
+      # Generic Commands
+
       class Version < Dry::CLI::Command
         desc "Print the program version number and quit."
 
@@ -16,6 +18,8 @@ module WMULPurpleMercury
           puts WMULPurpleMercury::VERSION
         end
       end
+
+      # Common Setup
 
       class CreateSymlinksForBuild < Dry::CLI::Command
         include SemanticLogger::Loggable
@@ -198,6 +202,56 @@ module WMULPurpleMercury
       end
 
 
+      class CopyRenderedItems < Dry::CLI::Command
+        include SemanticLogger::Loggable
+
+        desc "Copies all of the rendered files from the renders folder to their final destination." 
+
+        option :renders_folder, default: :emptyoption, 
+          desc: "The folder containing all of the rendered files."
+
+        option :destination_folder, default: :emptyoption, 
+          desc: "The final destination of the rendered files."
+
+        option :log_name, default: :emptyoption, desc: "The path to the log file."
+
+        option :log_level, default: 30, type: :integer, 
+          desc: "The log level: 0: Trace, 10: Debug, 20: Info, 30: Warning, 40: Error, 50: Fatal. Intermediate values 
+                (E.G. 32) are permitted, but will essentially be rounded down (E.G. Entering 32 is the same as entering 
+                30. Values beyond the 0-50 limit will be clamped to those limits. Logging messages lower than the log 
+                level will not be written to the log. E.G. If 30 is input, then all Debug, Info, and Trace messages 
+                will be silenced."
+
+        def call(**options)
+          begin
+            WMULPurpleMercury::CLI::LoggerSetup.setup_logger(options)
+          rescue ArgumentError => e
+            puts e.message
+            return
+          end
+          
+          logger.info("With #{options}")
+          renders_folder = options.fetch(:renders_folder)
+          begin
+            renders_folder = WMULPurpleMercury::CLI::Validators.validate_source_folder(renders_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --renders_folder #{e.message}")
+            return
+          end
+          destination_folder = options.fetch(:destination_folder)
+          begin
+            destination_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(destination_folder, true)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --destination_folder #{e.message}")
+            return
+          end
+          WMULPurpleMercury::Build.copy_rendered_items(renders_folder, destination_folder)
+        end
+      end
+
+
+      # Antora
+
       class BuildAsciidocSourceForAntora < Dry::CLI::Command
         include SemanticLogger::Loggable
 
@@ -304,6 +358,8 @@ module WMULPurpleMercury
       end
 
 
+      # PDF Book
+      
       class BuildAsciidocSourceForPDF < Dry::CLI::Command
         include SemanticLogger::Loggable
 
@@ -523,55 +579,8 @@ module WMULPurpleMercury
           WMULPurpleMercury::Build.build_pdfs(pdf_build_folder, renders_folder)
         end
       end
-
-
-      class CopyRenderedItems < Dry::CLI::Command
-        include SemanticLogger::Loggable
-
-        desc "Copies all of the rendered files from the renders folder to their final destination." 
-
-        option :renders_folder, default: :emptyoption, 
-          desc: "The folder containing all of the rendered files."
-
-        option :destination_folder, default: :emptyoption, 
-          desc: "The final destination of the rendered files."
-
-        option :log_name, default: :emptyoption, desc: "The path to the log file."
-
-        option :log_level, default: 30, type: :integer, 
-          desc: "The log level: 0: Trace, 10: Debug, 20: Info, 30: Warning, 40: Error, 50: Fatal. Intermediate values 
-                (E.G. 32) are permitted, but will essentially be rounded down (E.G. Entering 32 is the same as entering 
-                30. Values beyond the 0-50 limit will be clamped to those limits. Logging messages lower than the log 
-                level will not be written to the log. E.G. If 30 is input, then all Debug, Info, and Trace messages 
-                will be silenced."
-
-        def call(**options)
-          begin
-            WMULPurpleMercury::CLI::LoggerSetup.setup_logger(options)
-          rescue ArgumentError => e
-            puts e.message
-            return
-          end
-          
-          logger.info("With #{options}")
-          renders_folder = options.fetch(:renders_folder)
-          begin
-            renders_folder = WMULPurpleMercury::CLI::Validators.validate_source_folder(renders_folder)
-          rescue ArgumentError => e
-            logger.fatal("Argument Bad: --renders_folder #{e.message}")
-            return
-          end
-          destination_folder = options.fetch(:destination_folder)
-          begin
-            destination_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(destination_folder, true)
-          rescue ArgumentError => e
-            logger.fatal("Argument Bad: --destination_folder #{e.message}")
-            return
-          end
-          WMULPurpleMercury::Build.copy_rendered_items(renders_folder, destination_folder)
-        end
-      end
     end
+
 
     module Validators
       include SemanticLogger::Loggable 
@@ -668,6 +677,7 @@ module WMULPurpleMercury
         end
       end
     end
+
 
     module LoggerSetup
       def self.setup_logger(options)
