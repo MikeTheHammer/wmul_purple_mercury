@@ -406,6 +406,8 @@ module WMULPurpleMercury
             logger.fatal("Argument Bad: --pdf_build_folder #{e.message}")
             return
           end
+          pdf_static_folder = pdf_static_folder.realpath()
+          pdf_build_folder = pdf_build_folder.realpath()
           WMULPurpleMercury::Build.copy_pdf_static_folder(pdf_static_folder, pdf_build_folder)
         end
       end
