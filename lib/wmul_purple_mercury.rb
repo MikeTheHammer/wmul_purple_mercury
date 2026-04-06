@@ -149,6 +149,15 @@ module WMULPurpleMercury
         end
 
 
+        def self.build_pdfs(pdf_build_folder, renders_folder)
+            Dir.glob("*.adoc", base: pdf_build_folder).each do |file_name|
+                source_file_name = pdf_build_folder + file_name
+                destination_file_name = renders_folder + file_name
+                destination_file_name = destination_file_name.sub_ext(".pdf")
+                WMULPurpleMercury::Build.convert_asciidoc_file_to_pdf(source_file_name, destination_file_name)
+            end
+        end
+
 
         def self.build_asciidoc_source(asciidoc_source_folder, build_folder, excluded_suffixes, backend, book)
             logger.info("build_asciidoc_source:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Build Folder: #{build_folder} , Excluded Suffixes: #{excluded_suffixes} , Backend: #{backend} , Book: #{book}")
