@@ -639,6 +639,58 @@ module WMULPurpleMercury
       end
 
 
+      class CopyEPubStaticFolder < Dry::CLI::Command
+        include SemanticLogger::Loggable
+
+        desc "Copies all of the files from the ePub static folder into the ePub build folder." 
+
+        option :epub_static_folder, default: :emptyoption, 
+          desc: "The folder containing all of the epub static files."
+
+        option :epub_build_folder, default: :emptyoption, 
+          desc: "The location of the epub build folder."
+
+        option :create_build_folder, default: false, type: :boolean, 
+          desc: "If --pdf_build_folder does not already exist, create it."
+
+        option :log_name, default: :emptyoption, desc: "The path to the log file."
+
+        option :log_level, default: 30, type: :integer, 
+          desc: "The log level: 0: Trace, 10: Debug, 20: Info, 30: Warning, 40: Error, 50: Fatal. Intermediate values 
+                (E.G. 32) are permitted, but will essentially be rounded down (E.G. Entering 32 is the same as entering 
+                30. Values beyond the 0-50 limit will be clamped to those limits. Logging messages lower than the log 
+                level will not be written to the log. E.G. If 30 is input, then all Debug, Info, and Trace messages 
+                will be silenced."
+
+        def call(**options)
+          begin
+            WMULPurpleMercury::CLI::LoggerSetup.setup_logger(options)
+          rescue ArgumentError => e
+            puts e.message
+            return
+          end
+          
+          logger.info("With #{options}")
+          epub_static_folder = options.fetch(:epub_static_folder)
+          begin
+            epub_static_folder = WMULPurpleMercury::CLI::Validators.validate_source_folder(epub_static_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --epub_static_folder #{e.message}")
+            return
+          end
+          create_build_folder = options.fetch(:create_build_folder)
+          epub_build_folder = options.fetch(:epub_build_folder)
+          begin
+            epub_build_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(epub_build_folder, create_build_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --epub_build_folder #{e.message}")
+            return
+          end
+          epub_static_folder = epub_static_folder.realpath()
+          epub_build_folder = epub_build_folder.realpath()
+          WMULPurpleMercury::EPub.copy_epub_static_folder(epub_static_folder, epub_build_folder)
+        end
+      end
     end
 
 
@@ -790,6 +842,7 @@ WMULPurpleMercury::CLI::Commands.register "build_prebuild_asciidocs_to_pdf", WMU
 WMULPurpleMercury::CLI::Commands.register "build_pdfs", WMULPurpleMercury::CLI::Commands::BuildPDFs
 
 WMULPurpleMercury::CLI::Commands.register "build_asciidoc_source_for_epub", WMULPurpleMercury::CLI::Commands::BuildAsciidocSourceForEPub
+WMULPurpleMercury::CLI::Commands.register "copy_epub_static_folder", WMULPurpleMercury::CLI::Commands::CopyEPubStaticFolder
 
 WMULPurpleMercury::CLI::Commands.register "copy_rendered_items", WMULPurpleMercury::CLI::Commands::CopyRenderedItems
 

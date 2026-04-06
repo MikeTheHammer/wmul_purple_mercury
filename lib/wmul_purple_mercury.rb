@@ -179,6 +179,8 @@ module WMULPurpleMercury
 
     end
 
+
+
     module EPub
         include SemanticLogger::Loggable
 
@@ -186,6 +188,14 @@ module WMULPurpleMercury
             logger.info("build_asciidoc_source_for_epub:: AsciiDoc Source Folder: #{asciidoc_source_folder} , ePub Intermediate Folder: #{epub_intermediate_folder}")
             excluded_suffixes = [".src", ".prebuild", ".antora", ".pdf"]
             WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, epub_intermediate_folder, excluded_suffixes, "epub", true)
+        end
+
+
+        def self.copy_epub_static_folder(epub_static_folder, epub_build_folder)
+            logger.info("copy_epub_static_folder:: ePub Static Folder: #{epub_static_folder} , ePub Build Folder: #{epub_build_folder}")
+            epub_static_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(epub_static_folder, epub_build_folder)
+            epub_suffixes = [".adoc", ".yml", ".yaml", ".ttf"]
+            WMULPurpleMercury::BuildCommon.copy_files_having_suffix(epub_static_files, epub_suffixes)
         end
 
     end
