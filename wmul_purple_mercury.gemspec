@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name                    = "wmul_purple_mercury"
-  s.version                 = "0.0.6"
+  s.version                 = "0.0.7"
   s.authors                 = ["Mike Stanley"]
   s.description             = "The build engine for WMUL-FM's Operations Manuals."
   s.email                   = "stanley50@marshall.edu"
