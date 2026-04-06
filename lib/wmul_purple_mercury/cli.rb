@@ -197,7 +197,7 @@ module WMULPurpleMercury
             logger.fatal("Argument Bad: --build_folder #{e.message}")
             return
           end
-          WMULPurpleMercury::Build.clean_build_folder(build_folder)
+          WMULPurpleMercury::Setup.clean_build_folder(build_folder)
         end
       end
 
@@ -245,7 +245,7 @@ module WMULPurpleMercury
             logger.fatal("Argument Bad: --destination_folder #{e.message}")
             return
           end
-          WMULPurpleMercury::Build.copy_rendered_items(renders_folder, destination_folder)
+          WMULPurpleMercury::Setup.copy_rendered_items(renders_folder, destination_folder)
         end
       end
 
@@ -302,9 +302,10 @@ module WMULPurpleMercury
             logger.fatal("Argument Bad: --antora_intermediate_folder #{e.message}")
             return
           end
-          WMULPurpleMercury::Build.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_intermediate_folder)
+          WMULPurpleMercury::Antora.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_intermediate_folder)
         end
       end
+
 
       class CopyAntoraStaticFolder < Dry::CLI::Command
         include SemanticLogger::Loggable
@@ -353,13 +354,13 @@ module WMULPurpleMercury
             logger.fatal("Argument Bad: --antora_build_folder #{e.message}")
             return
           end
-          WMULPurpleMercury::Build.copy_antora_static_folder(antora_static_folder, antora_build_folder)
+          WMULPurpleMercury::Antora.copy_antora_static_folder(antora_static_folder, antora_build_folder)
         end
       end
 
 
       # PDF Book
-      
+
       class BuildAsciidocSourceForPDF < Dry::CLI::Command
         include SemanticLogger::Loggable
 
@@ -410,7 +411,7 @@ module WMULPurpleMercury
             logger.fatal("Argument Bad: --pdf_intermediate_folder #{e.message}")
             return
           end
-          WMULPurpleMercury::Build.build_asciidoc_source_for_pdf(asciidoc_source_folder, pdf_intermediate_folder)
+          WMULPurpleMercury::PDFBook.build_asciidoc_source_for_pdf(asciidoc_source_folder, pdf_intermediate_folder)
         end
       end
 
@@ -464,7 +465,7 @@ module WMULPurpleMercury
           end
           pdf_static_folder = pdf_static_folder.realpath()
           pdf_build_folder = pdf_build_folder.realpath()
-          WMULPurpleMercury::Build.copy_pdf_static_folder(pdf_static_folder, pdf_build_folder)
+          WMULPurpleMercury::PDFBook.copy_pdf_static_folder(pdf_static_folder, pdf_build_folder)
         end
       end
 
@@ -520,7 +521,7 @@ module WMULPurpleMercury
           end
           asciidoc_source_folder = asciidoc_source_folder.realpath()
           pdf_build_folder = pdf_build_folder.realpath()
-          WMULPurpleMercury::Build.build_prebuild_asciidocs_to_pdf(asciidoc_source_folder, pdf_build_folder)
+          WMULPurpleMercury::PDFBook.build_prebuild_asciidocs_to_pdf(asciidoc_source_folder, pdf_build_folder)
         end
       end
 
@@ -576,9 +577,68 @@ module WMULPurpleMercury
           end
           pdf_build_folder = pdf_build_folder.realpath()
           renders_folder = renders_folder.realpath()
-          WMULPurpleMercury::Build.build_pdfs(pdf_build_folder, renders_folder)
+          WMULPurpleMercury::PDFBook.build_pdfs(pdf_build_folder, renders_folder)
         end
       end
+
+
+      # ePub
+
+      class BuildAsciidocSourceForEPub < Dry::CLI::Command
+        include SemanticLogger::Loggable
+
+        desc "Recursively iterates through all of the asciidoc files inside --asciidoc_source_folder , runs 
+        asciidoc-reducer on them, and saves the output into --epub_intermediate_folder. Files with the middle suffix 
+        .src .prebuild, and .antora and .pdf are not reduced, although they can be included in the other files using 
+        the asciidoc include[] directive." 
+
+        option :asciidoc_source_folder, default: :emptyoption, 
+          desc: "The folder containing all of the asciidoc files to be reduced."
+
+        option :epub_intermediate_folder, default: :emptyoption, 
+          desc: "The location of the intermediate folder into which the reduced asciidoc files should be written."
+
+        option :create_intermediate_folder, default: false, type: :boolean, 
+          desc: "If --epub_intermediate_folder does not already exist, create it."
+
+        option :log_name, default: :emptyoption, desc: "The path to the log file."
+
+        option :log_level, default: 30, type: :integer, 
+          desc: "The log level: 0: Trace, 10: Debug, 20: Info, 30: Warning, 40: Error, 50: Fatal. Intermediate values 
+                (E.G. 32) are permitted, but will essentially be rounded down (E.G. Entering 32 is the same as entering 
+                30. Values beyond the 0-50 limit will be clamped to those limits. Logging messages lower than the log 
+                level will not be written to the log. E.G. If 30 is input, then all Debug, Info, and Trace messages 
+                will be silenced."
+
+        def call(**options)
+          begin
+            WMULPurpleMercury::CLI::LoggerSetup.setup_logger(options)
+          rescue ArgumentError => e
+            puts e.message
+            return
+          end
+          
+          logger.info("With #{options}")
+          asciidoc_source_folder = options.fetch(:asciidoc_source_folder)
+          begin
+            asciidoc_source_folder = WMULPurpleMercury::CLI::Validators.validate_source_folder(asciidoc_source_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --asciidoc_source_folder #{e.message}")
+            return
+          end
+          create_intermediate_folder = options.fetch(:create_intermediate_folder)
+          epub_intermediate_folder = options.fetch(:epub_intermediate_folder)
+          begin
+            epub_intermediate_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(epub_intermediate_folder, create_intermediate_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --epub_intermediate_folder #{e.message}")
+            return
+          end
+          WMULPurpleMercury::Build.build_asciidoc_source_for_epub(asciidoc_source_folder, epub_intermediate_folder)
+        end
+      end
+
+
     end
 
 

@@ -86,6 +86,7 @@ module WMULPurpleMercury
             source_path.make_symlink(target_path)
         end
 
+
         def self.check_if_path_exists_and_not_symlink(path_under_test)
             if (path_under_test.exist?()) && (path_under_test.symlink?() == false)
                 logger.fatal("The path #{path_under_test} already exists, but it is not a symlink. Exiting...")
@@ -93,36 +94,46 @@ module WMULPurpleMercury
             end
         end
 
-    end
-
-
-
-    module Build
-        include SemanticLogger::Loggable
 
         def self.clean_build_folder(build_folder)
             build_folder.rmtree(secure: true)
             build_folder.mkpath(mode: 0744)
         end
 
+
+        def self.copy_rendered_items(source_folder, destination_folder)
+            logger.info("copy_rendered_items:: Source Folder: #{source_folder} , Destination Folder: #{destination_folder}")
+            FileUtils.cp_r(source_folder, destination_folder, remove_destination:  true)
+        end
+    end
+
+
+
+    module Antora
+        include SemanticLogger::Loggable
+
         def self.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_intermediate_folder)
             logger.info("build_asciidoc_source_for_antora:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Antora Intermediate Folder: #{antora_intermediate_folder}")
             excluded_suffixes = [".src", ".prebuild", ".pdf"]
-            WMULPurpleMercury::Build.build_asciidoc_source(asciidoc_source_folder, antora_intermediate_folder, excluded_suffixes, "antora", false)
+            WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, antora_intermediate_folder, excluded_suffixes, "antora", false)
         end
 
         def self.copy_antora_static_folder(antora_static_folder, antora_build_folder)
             logger.info("copy_antora_static_folder:: Antora Static Folder: #{antora_static_folder} , Antora Build Folder: #{antora_build_folder}")
             antora_static_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(antora_static_folder, antora_build_folder)
             antora_suffixes = [".adoc", ".yml", ".yaml"]
-            WMULPurpleMercury::Build.copy_files_having_suffix(antora_static_files, antora_suffixes)
+            WMULPurpleMercury::BuildCommon.copy_files_having_suffix(antora_static_files, antora_suffixes)
         end
+    end
 
+
+    module PDFBook
+        include SemanticLogger::Loggable
 
         def self.build_asciidoc_source_for_pdf(asciidoc_source_folder, pdf_intermediate_folder)
             logger.info("build_asciidoc_source_for_pdf:: AsciiDoc Source Folder: #{asciidoc_source_folder} , PDF Intermediate Folder: #{pdf_intermediate_folder}")
             excluded_suffixes = [".src", ".prebuild", ".antora"]
-            WMULPurpleMercury::Build.build_asciidoc_source(asciidoc_source_folder, pdf_intermediate_folder, excluded_suffixes, "pdf", true)
+            WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, pdf_intermediate_folder, excluded_suffixes, "pdf", true)
         end
 
 
@@ -130,7 +141,7 @@ module WMULPurpleMercury
             logger.info("copy_pdf_static_folder:: PDF Static Folder: #{pdf_static_folder} , PDF Build Folder: #{pdf_build_folder}")
             pdf_static_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(pdf_static_folder, pdf_build_folder)
             pdf_suffixes = [".adoc", ".yml", ".yaml", ".ttf"]
-            WMULPurpleMercury::Build.copy_files_having_suffix(pdf_static_files, pdf_suffixes)
+            WMULPurpleMercury::BuildCommon.copy_files_having_suffix(pdf_static_files, pdf_suffixes)
         end
 
 
@@ -142,7 +153,7 @@ module WMULPurpleMercury
                 if WMULPurpleMercury::FileNameManager.file_name_contains_all_suffixes?(file_pair.source_file_name, required_suffixes)
                     destination_file_name = WMULPurpleMercury::FileNameManager.strip_middle_suffix_from_filename(file_pair.destination_file_name, ".prebuild")
                     destination_file_name = destination_file_name.sub_ext(".pdf")
-                    WMULPurpleMercury::Build.convert_asciidoc_file_to_pdf(file_pair.source_file_name, destination_file_name)
+                    WMULPurpleMercury::PDFBook.convert_asciidoc_file_to_pdf(file_pair.source_file_name, destination_file_name)
                 end
             end
 
@@ -154,10 +165,24 @@ module WMULPurpleMercury
                 source_file_name = pdf_build_folder + file_name
                 destination_file_name = renders_folder + file_name
                 destination_file_name = destination_file_name.sub_ext(".pdf")
-                WMULPurpleMercury::Build.convert_asciidoc_file_to_pdf(source_file_name, destination_file_name)
+                WMULPurpleMercury::PDFBook.convert_asciidoc_file_to_pdf(source_file_name, destination_file_name)
             end
         end
 
+
+        def self.convert_asciidoc_file_to_pdf(input_file, output_file)
+            logger.info("convert_asciidoc_file_to_pdf:: Input File: #{input_file} , Output File: #{output_file}")
+            basedir = input_file.parent()
+            Dir.chdir(basedir)
+            Asciidoctor.convert_file input_file.to_s(), safe: :unsafe, backend: 'pdf', doctype: :book, to_file: output_file.to_s(), attributes: "pdf=true", mkdirs: true, base_dir: basedir.to_s()
+        end
+
+    end
+
+
+
+    module BuildCommon
+        include SemanticLogger::Loggable
 
         def self.build_asciidoc_source(asciidoc_source_folder, build_folder, excluded_suffixes, backend, book)
             logger.info("build_asciidoc_source:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Build Folder: #{build_folder} , Excluded Suffixes: #{excluded_suffixes} , Backend: #{backend} , Book: #{book}")
@@ -165,7 +190,7 @@ module WMULPurpleMercury
             asciidoc_source_files.each do |file_pair|
                 unless WMULPurpleMercury::FileNameManager::file_name_contains_any_suffix?(file_pair.source_file_name, excluded_suffixes)
                     destination_file_name = WMULPurpleMercury::FileNameManager.strip_middle_suffix_from_filename(file_pair.destination_file_name, ".#{backend}")
-                    reduce_asciidoc(file_pair.source_file_name, destination_file_name, backend, book)
+                    WMULPurpleMercury::BuildCommon.reduce_asciidoc(file_pair.source_file_name, destination_file_name, backend, book)
                 end
             end
         end
@@ -178,14 +203,6 @@ module WMULPurpleMercury
             else
                 Asciidoctor::Reducer.reduce_file source_file, safe: :unsafe, to: destination_file, attributes: "#{backend}=true"
             end
-        end
-
-
-        def self.convert_asciidoc_file_to_pdf(input_file, output_file)
-            logger.info("convert_asciidoc_file_to_pdf:: Input File: #{input_file} , Output File: #{output_file}")
-            basedir = input_file.parent()
-            Dir.chdir(basedir)
-            Asciidoctor.convert_file input_file.to_s(), safe: :unsafe, backend: 'pdf', doctype: :book, to_file: output_file.to_s(), attributes: "pdf=true", mkdirs: true, base_dir: basedir.to_s()
         end
 
 
@@ -205,12 +222,6 @@ module WMULPurpleMercury
                     FileUtils.copy_file(source_file, destination_file)
                 end
             end
-        end
-
-
-        def self.copy_rendered_items(source_folder, destination_folder)
-            logger.info("copy_rendered_items:: Source Folder: #{source_folder} , Destination Folder: #{destination_folder}")
-            FileUtils.cp_r(source_folder, destination_folder, remove_destination:  true)
         end
     end
 
