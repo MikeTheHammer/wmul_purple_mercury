@@ -1,4 +1,5 @@
 require 'asciidoctor-pdf'
+require 'asciidoctor-epub3'
 require 'asciidoctor/reducer/api'
 require 'fileutils'
 require "semantic_logger"
@@ -197,6 +198,25 @@ module WMULPurpleMercury
             epub_suffixes = [".adoc", ".yml", ".yaml", ".ttf"]
             WMULPurpleMercury::BuildCommon.copy_files_having_suffix(epub_static_files, epub_suffixes)
         end
+
+
+        def self.build_epubs(epub_build_folder, renders_folder)
+            Dir.glob("*.adoc", base: epub_build_folder).each do |file_name|
+                source_file_name = epub_build_folder + file_name
+                destination_file_name = renders_folder + file_name
+                destination_file_name = destination_file_name.sub_ext(".epub")
+                WMULPurpleMercury::EPub.convert_asciidoc_file_to_epub(source_file_name, destination_file_name)
+            end
+        end
+
+
+        def self.convert_asciidoc_file_to_epub(input_file, output_file)
+            logger.info("convert_asciidoc_file_to_epub:: Input File: #{input_file} , Output File: #{output_file}")
+            basedir = input_file.parent()
+            Dir.chdir(basedir)
+            Asciidoctor.convert_file input_file.to_s(), safe: :unsafe, backend: 'epub3', doctype: :book, to_file: output_file.to_s(), attributes: "epub=true", mkdirs: true, base_dir: basedir.to_s()
+        end
+
 
     end
 

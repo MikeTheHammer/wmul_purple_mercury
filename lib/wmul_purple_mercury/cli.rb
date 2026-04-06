@@ -691,6 +691,63 @@ module WMULPurpleMercury
           WMULPurpleMercury::EPub.copy_epub_static_folder(epub_static_folder, epub_build_folder)
         end
       end
+
+      class BuildEPubs < Dry::CLI::Command
+        include SemanticLogger::Loggable
+
+        desc "Non-recursively iterates through the asciidoc files in the root of --epub_build_folder , runs 
+        asciidoctor-epub3 on them, and saves the output into --renders_folder. Only .adoc files in the root of 
+        --epub_build_folder are converted."
+
+        option :epub_build_folder, default: :emptyoption, 
+          desc: "The root folder containing the asciidoc files to be converted."
+
+        option :renders_folder, default: :emptyoption, 
+          desc: "The location of the renders folder into which the rendered epub files should be written."
+
+        option :create_renders_folder, default: false, type: :boolean, 
+          desc: "If --renders_folder does not already exist, create it."
+
+        option :log_name, default: :emptyoption, desc: "The path to the log file."
+
+        option :log_level, default: 30, type: :integer, 
+          desc: "The log level: 0: Trace, 10: Debug, 20: Info, 30: Warning, 40: Error, 50: Fatal. Intermediate values 
+                (E.G. 32) are permitted, but will essentially be rounded down (E.G. Entering 32 is the same as entering 
+                30. Values beyond the 0-50 limit will be clamped to those limits. Logging messages lower than the log 
+                level will not be written to the log. E.G. If 30 is input, then all Debug, Info, and Trace messages 
+                will be silenced."
+
+        def call(**options)
+          begin
+            WMULPurpleMercury::CLI::LoggerSetup.setup_logger(options)
+          rescue ArgumentError => e
+            puts e.message
+            return
+          end
+          
+          logger.info("With #{options}")
+          epub_build_folder = options.fetch(:epub_build_folder)
+          begin
+            epub_build_folder = WMULPurpleMercury::CLI::Validators.validate_source_folder(epub_build_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --epub_build_folder #{e.message}")
+            return
+          end
+          create_renders_folder = options.fetch(:create_renders_folder)
+          renders_folder = options.fetch(:renders_folder)
+          begin
+            renders_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(renders_folder, create_renders_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --renders_folder #{e.message}")
+            return
+          end
+          epub_build_folder = epub_build_folder.realpath()
+          renders_folder = renders_folder.realpath()
+          WMULPurpleMercury::EPub.build_epubs(epub_build_folder, renders_folder)
+        end
+      end
+
+
     end
 
 
@@ -843,6 +900,8 @@ WMULPurpleMercury::CLI::Commands.register "build_pdfs", WMULPurpleMercury::CLI::
 
 WMULPurpleMercury::CLI::Commands.register "build_asciidoc_source_for_epub", WMULPurpleMercury::CLI::Commands::BuildAsciidocSourceForEPub
 WMULPurpleMercury::CLI::Commands.register "copy_epub_static_folder", WMULPurpleMercury::CLI::Commands::CopyEPubStaticFolder
+WMULPurpleMercury::CLI::Commands.register "build_epubs", WMULPurpleMercury::CLI::Commands::BuildEPubs
+
 
 WMULPurpleMercury::CLI::Commands.register "copy_rendered_items", WMULPurpleMercury::CLI::Commands::CopyRenderedItems
 
