@@ -1,0 +1,7 @@
+= WMUL Purple Mercury
+
+The build engine for WMUL-FM's Operations Manuals.
+
+This gem creates WMUL-FM's Operations Manuals by taking one set of Asciidoc source files and compiling them into 
+https://antora.org/[Antora] and book-length pdf versions.
+
