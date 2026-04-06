@@ -528,7 +528,7 @@ module WMULPurpleMercury
       class CopyRenderedItems < Dry::CLI::Command
         include SemanticLogger::Loggable
 
-        desc "Copies all of the rendeded files from the renders folder to their final destination." 
+        desc "Copies all of the rendered files from the renders folder to their final destination." 
 
         option :renders_folder, default: :emptyoption, 
           desc: "The folder containing all of the rendered files."
