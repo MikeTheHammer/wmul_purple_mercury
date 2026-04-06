@@ -135,7 +135,7 @@ module WMULPurpleMercury
 
 
         def self.build_prebuild_asciidocs_to_pdf(asciidoc_source_folder, pdf_build_folder)
-            pdf_prebuild_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(asciidoc_source_folder, pdf_build_folder)
+            pdf_prebuild_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(asciidoc_source_folder, pdf_build_folder, input_suffix: ".adoc")
             required_suffixes = [".prebuild", ".adoc"]
 
             pdf_prebuild_files.each do |file_pair|
@@ -152,7 +152,7 @@ module WMULPurpleMercury
 
         def self.build_asciidoc_source(asciidoc_source_folder, build_folder, excluded_suffixes, backend, book)
             logger.info("build_asciidoc_source:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Build Folder: #{build_folder} , Excluded Suffixes: #{excluded_suffixes} , Backend: #{backend} , Book: #{book}")
-            asciidoc_source_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(asciidoc_source_folder, build_folder)
+            asciidoc_source_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(asciidoc_source_folder, build_folder, input_suffix: ".adoc")
             asciidoc_source_files.each do |file_pair|
                 unless WMULPurpleMercury::FileNameManager::file_name_contains_any_suffix?(file_pair.source_file_name, excluded_suffixes)
                     destination_file_name = WMULPurpleMercury::FileNameManager.strip_middle_suffix_from_filename(file_pair.destination_file_name, ".#{backend}")
@@ -206,10 +206,10 @@ module WMULPurpleMercury
     module FileNameManager
         include SemanticLogger::Loggable
 
-        def self.get_sorted_file_names(source_root, output_root, output_suffix = nil)
+        def self.get_sorted_file_names(source_root, output_root, output_suffix = nil, input_suffix: "")
             logger.info("get_sorted_file_names:: Source Root: #{source_root} , Output Root: #{output_root} , Output Suffix: #{output_suffix}")
             file_paths = []
-            Dir.glob("**/*.adoc", base: source_root).each do |file_name|
+            Dir.glob("**/*#{input_suffix}", base: source_root).each do |file_name|
                 source_file_name = source_root + file_name
                 destination_file_name = output_root + file_name
                 if output_suffix
