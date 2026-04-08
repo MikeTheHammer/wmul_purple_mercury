@@ -3,7 +3,7 @@ require "semantic_logger"
 require_relative "../wmul_purple_mercury"
 
 module WMULPurpleMercury
-  VERSION = "0.0.10"
+  VERSION = "0.0.11"
 
   module CLI
     module Commands
@@ -813,7 +813,8 @@ module WMULPurpleMercury
 
 
       def self.validate_log_name(log_name)
-        dir_name = File.dirname(log_name)
+        dir_name = Pathname.new(File.dirname(log_name))
+        dir_name.mkpath(mode: 0744)
         unless File.writable?(dir_name)
           raise ArgumentError.new("#{log_name} is not writable.")
         end
