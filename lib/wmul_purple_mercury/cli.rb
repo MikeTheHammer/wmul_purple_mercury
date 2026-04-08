@@ -3,7 +3,7 @@ require "semantic_logger"
 require_relative "../wmul_purple_mercury"
 
 module WMULPurpleMercury
-  VERSION = "0.0.8"
+  VERSION = "0.0.10"
 
   module CLI
     module Commands
