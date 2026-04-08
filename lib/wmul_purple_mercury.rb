@@ -115,7 +115,7 @@ module WMULPurpleMercury
 
         def self.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_intermediate_folder)
             logger.info("build_asciidoc_source_for_antora:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Antora Intermediate Folder: #{antora_intermediate_folder}")
-            excluded_suffixes = [".src", ".prebuild", ".pdf"]
+            excluded_suffixes = [".src", ".prebuild", ".pdf", ".epub"]
             WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, antora_intermediate_folder, excluded_suffixes, "antora", false)
         end
 
@@ -133,7 +133,7 @@ module WMULPurpleMercury
 
         def self.build_asciidoc_source_for_pdf(asciidoc_source_folder, pdf_intermediate_folder)
             logger.info("build_asciidoc_source_for_pdf:: AsciiDoc Source Folder: #{asciidoc_source_folder} , PDF Intermediate Folder: #{pdf_intermediate_folder}")
-            excluded_suffixes = [".src", ".prebuild", ".antora"]
+            excluded_suffixes = [".src", ".prebuild", ".antora", ".epub"]
             WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, pdf_intermediate_folder, excluded_suffixes, "pdf", true)
         end
 
