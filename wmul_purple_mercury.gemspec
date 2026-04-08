@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.rubygems_version        = "3.4.19"
   s.summary                 = "The build engine for WMUL-FM's Operations Manuals."
   s.license                 = "MIT"
-  s.required_ruby_version   = "3.2.3"
+  s.required_ruby_version   = ">=3.2.3"
   s.executables             << "purple_mercury"
   s.add_runtime_dependency("asciidoctor", "~> 2.0", ">= 2.0.26")
   s.add_runtime_dependency("asciidoctor-epub3", "~> 2.3", ">= 2.3.0")
