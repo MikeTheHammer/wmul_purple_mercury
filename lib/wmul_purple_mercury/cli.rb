@@ -465,7 +465,7 @@ module WMULPurpleMercury
           end
           pdf_static_folder = pdf_static_folder.realpath()
           pdf_build_folder = pdf_build_folder.realpath()
-          WMULPurpleMercury::PDFBook.copy_pdf_static_folder(pdf_static_folder, pdf_build_folder)
+          WMULPurpleMercury::PDFCommon.copy_pdf_static_folder(pdf_static_folder, pdf_build_folder)
         end
       end
 
@@ -577,7 +577,7 @@ module WMULPurpleMercury
           end
           pdf_build_folder = pdf_build_folder.realpath()
           renders_folder = renders_folder.realpath()
-          WMULPurpleMercury::PDFBook.build_pdfs(pdf_build_folder, renders_folder)
+          WMULPurpleMercury::PDFCommon.build_pdfs(pdf_build_folder, renders_folder, "pdf=true")
         end
       end
 

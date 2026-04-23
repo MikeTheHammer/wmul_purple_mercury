@@ -139,15 +139,6 @@ module WMULPurpleMercury
             WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, pdf_intermediate_folder, excluded_suffixes, "pdf", true)
         end
 
-
-        def self.copy_pdf_static_folder(pdf_static_folder, pdf_build_folder)
-            logger.info("copy_pdf_static_folder:: PDF Static Folder: #{pdf_static_folder} , PDF Build Folder: #{pdf_build_folder}")
-            pdf_static_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(pdf_static_folder, pdf_build_folder)
-            pdf_suffixes = [".adoc", ".yml", ".yaml", ".ttf"]
-            WMULPurpleMercury::BuildCommon.copy_files_having_suffix(pdf_static_files, pdf_suffixes)
-        end
-
-
         def self.build_prebuild_asciidocs_to_pdf(asciidoc_source_folder, pdf_build_folder)
             pdf_prebuild_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(asciidoc_source_folder, pdf_build_folder, input_suffix: ".adoc")
             required_suffixes = [".prebuild", ".adoc"]
@@ -156,30 +147,11 @@ module WMULPurpleMercury
                 if WMULPurpleMercury::FileNameManager.file_name_contains_all_suffixes?(file_pair.source_file_name, required_suffixes)
                     destination_file_name = WMULPurpleMercury::FileNameManager.strip_middle_suffix_from_filename(file_pair.destination_file_name, ".prebuild")
                     destination_file_name = destination_file_name.sub_ext(".pdf")
-                    WMULPurpleMercury::PDFBook.convert_asciidoc_file_to_pdf(file_pair.source_file_name, destination_file_name)
+                    WMULPurpleMercury::PDFCommon.convert_asciidoc_file_to_pdf(file_pair.source_file_name, destination_file_name, "pdf=true")
                 end
             end
 
         end
-
-
-        def self.build_pdfs(pdf_build_folder, renders_folder)
-            Dir.glob("*.adoc", base: pdf_build_folder).each do |file_name|
-                source_file_name = pdf_build_folder + file_name
-                destination_file_name = renders_folder + file_name
-                destination_file_name = destination_file_name.sub_ext(".pdf")
-                WMULPurpleMercury::PDFBook.convert_asciidoc_file_to_pdf(source_file_name, destination_file_name)
-            end
-        end
-
-
-        def self.convert_asciidoc_file_to_pdf(input_file, output_file)
-            logger.info("convert_asciidoc_file_to_pdf:: Input File: #{input_file} , Output File: #{output_file}")
-            basedir = input_file.parent()
-            Dir.chdir(basedir)
-            Asciidoctor.convert_file input_file.to_s(), safe: :unsafe, backend: 'pdf', doctype: :book, to_file: output_file.to_s(), attributes: "pdf=true", mkdirs: true, base_dir: basedir.to_s()
-        end
-
     end
 
 
@@ -221,6 +193,33 @@ module WMULPurpleMercury
         end
 
 
+    end
+
+    module PDFCommon
+        include SemanticLogger::Loggable
+
+        def self.copy_pdf_static_folder(pdf_static_folder, pdf_build_folder)
+            logger.info("copy_standalone_static_folder:: PDF Static Folder: #{pdf_static_folder} , PDF Build Folder: #{pdf_build_folder}")
+            pdf_static_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(pdf_static_folder, pdf_build_folder)
+            pdf_suffixes = [".adoc", ".yml", ".yaml", ".ttf"]
+            WMULPurpleMercury::BuildCommon.copy_files_having_suffix(pdf_static_files, pdf_suffixes)
+        end
+
+        def self.build_pdfs(pdf_build_folder, renders_folder, attributes)
+            Dir.glob("*.adoc", base: pdf_build_folder).each do |file_name|
+                source_file_name = pdf_build_folder + file_name
+                destination_file_name = renders_folder + file_name
+                destination_file_name = destination_file_name.sub_ext(".pdf")
+                WMULPurpleMercury::PDFCommon.convert_asciidoc_file_to_pdf(source_file_name, destination_file_name, attributes)
+            end
+        end
+
+        def self.convert_asciidoc_file_to_pdf(input_file, output_file, attributes)
+            logger.info("convert_asciidoc_file_to_pdf:: Input File: #{input_file} , Output File: #{output_file}")
+            basedir = input_file.parent()
+            Dir.chdir(basedir)
+            Asciidoctor.convert_file input_file.to_s(), safe: :unsafe, backend: 'pdf', doctype: :book, to_file: output_file.to_s(), attributes: attributes, mkdirs: true, base_dir: basedir.to_s()
+        end
     end
 
 
