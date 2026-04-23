@@ -5,7 +5,7 @@ require 'fileutils'
 require "semantic_logger"
 
 module WMULPurpleMercury
-    
+    ALL_SUFFIXES = [".src", ".prebuild", ".antora", ".pdf", ".epub", ".standalone"]
     module Setup
         include SemanticLogger::Loggable
 
@@ -115,7 +115,8 @@ module WMULPurpleMercury
 
         def self.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_intermediate_folder)
             logger.info("build_asciidoc_source_for_antora:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Antora Intermediate Folder: #{antora_intermediate_folder}")
-            excluded_suffixes = [".src", ".prebuild", ".pdf", ".epub"]
+            excluded_suffixes = Array.new(WMULPurpleMercury::ALL_SUFFIXES)
+            excluded_suffixes.delete(".antora")
             WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, antora_intermediate_folder, excluded_suffixes, "antora", false)
         end
 
@@ -133,7 +134,8 @@ module WMULPurpleMercury
 
         def self.build_asciidoc_source_for_pdf(asciidoc_source_folder, pdf_intermediate_folder)
             logger.info("build_asciidoc_source_for_pdf:: AsciiDoc Source Folder: #{asciidoc_source_folder} , PDF Intermediate Folder: #{pdf_intermediate_folder}")
-            excluded_suffixes = [".src", ".prebuild", ".antora", ".epub"]
+            excluded_suffixes = Array.new(WMULPurpleMercury::ALL_SUFFIXES)
+            excluded_suffixes.delete(".pdf")
             WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, pdf_intermediate_folder, excluded_suffixes, "pdf", true)
         end
 
@@ -187,7 +189,8 @@ module WMULPurpleMercury
 
         def self.build_asciidoc_source_for_epub(asciidoc_source_folder, epub_intermediate_folder)
             logger.info("build_asciidoc_source_for_epub:: AsciiDoc Source Folder: #{asciidoc_source_folder} , ePub Intermediate Folder: #{epub_intermediate_folder}")
-            excluded_suffixes = [".src", ".prebuild", ".antora", ".pdf"]
+            excluded_suffixes = Array.new(WMULPurpleMercury::ALL_SUFFIXES)
+            excluded_suffixes.delete(".epub")
             WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, epub_intermediate_folder, excluded_suffixes, "epub", true)
         end
 
