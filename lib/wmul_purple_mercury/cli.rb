@@ -257,8 +257,8 @@ module WMULPurpleMercury
 
         desc "Recursively iterates through all of the asciidoc files inside --asciidoc_source_folder , runs 
         asciidoc-reducer on them, and saves the output into --antora_intermediate_folder. Files with the middle suffix 
-        .src .prebuild and .pdf are not reduced, although they can be included in the other files using the asciidoc 
-        include[] directive." 
+        .src .prebuild .epub .standalone and .pdf are not reduced, although they can be included in the other files 
+        using the asciidoc include[] directive." 
 
         option :asciidoc_source_folder, default: :emptyoption, 
           desc: "The folder containing all of the asciidoc files to be reduced."
@@ -366,8 +366,8 @@ module WMULPurpleMercury
 
         desc "Recursively iterates through all of the asciidoc files inside --asciidoc_source_folder , runs 
         asciidoc-reducer on them, and saves the output into --pdf_intermediate. Files with the middle suffix .src 
-        .prebuild and .antora are not reduced, although they can be included in the other files using the asciidoc 
-        include[] directive." 
+        .prebuild .epub .standalone and .antora are not reduced, although they can be included in the other files using 
+        the asciidoc include[] directive." 
 
         option :asciidoc_source_folder, default: :emptyoption, 
           desc: "The folder containing all of the asciidoc files to be reduced."
@@ -376,7 +376,7 @@ module WMULPurpleMercury
           desc: "The location of the intermediate folder into which the reduced asciidoc files should be written."
 
         option :create_intermediate_folder, default: false, type: :boolean, 
-          desc: "If --antora_intermediate_folder does not already exist, create it."
+          desc: "If --pdf_intermediate_folder does not already exist, create it."
 
         option :log_name, default: :emptyoption, desc: "The path to the log file."
 
@@ -589,8 +589,8 @@ module WMULPurpleMercury
 
         desc "Recursively iterates through all of the asciidoc files inside --asciidoc_source_folder , runs 
         asciidoc-reducer on them, and saves the output into --epub_intermediate_folder. Files with the middle suffix 
-        .src .prebuild, and .antora and .pdf are not reduced, although they can be included in the other files using 
-        the asciidoc include[] directive." 
+        .src .prebuild .antora .standalone and .pdf are not reduced, although they can be included in the other files 
+        using the asciidoc include[] directive." 
 
         option :asciidoc_source_folder, default: :emptyoption, 
           desc: "The folder containing all of the asciidoc files to be reduced."
