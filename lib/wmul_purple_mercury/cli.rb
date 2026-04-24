@@ -3,7 +3,7 @@ require "semantic_logger"
 require_relative "../wmul_purple_mercury"
 
 module WMULPurpleMercury
-  VERSION = "0.0.11"
+  VERSION = "0.0.12"
 
   module CLI
     module Commands
@@ -748,6 +748,117 @@ module WMULPurpleMercury
       end
 
 
+      # Standalone
+      class BuildAsciidocSourceForStandalone < Dry::CLI::Command
+        include SemanticLogger::Loggable
+
+        desc "Recursively iterates through all of the asciidoc files inside --asciidoc_source_folder , runs 
+        asciidoc-reducer on them, and saves the output into --standalone_intermediate. Files with the middle suffix 
+        .src .prebuild .pdf .epub and .antora are not reduced, although they can be included in the other files using 
+        the asciidoc include[] directive." 
+
+        option :asciidoc_source_folder, default: :emptyoption, 
+          desc: "The folder containing all of the asciidoc files to be reduced."
+
+        option :standalone_intermediate_folder, default: :emptyoption, 
+          desc: "The location of the intermediate folder into which the reduced asciidoc files should be written."
+
+        option :create_intermediate_folder, default: false, type: :boolean, 
+          desc: "If --standalone_intermediate_folder does not already exist, create it."
+
+        option :log_name, default: :emptyoption, desc: "The path to the log file."
+
+        option :log_level, default: 30, type: :integer, 
+          desc: "The log level: 0: Trace, 10: Debug, 20: Info, 30: Warning, 40: Error, 50: Fatal. Intermediate values 
+                (E.G. 32) are permitted, but will essentially be rounded down (E.G. Entering 32 is the same as entering 
+                30. Values beyond the 0-50 limit will be clamped to those limits. Logging messages lower than the log 
+                level will not be written to the log. E.G. If 30 is input, then all Debug, Info, and Trace messages 
+                will be silenced."
+
+        def call(**options)
+          begin
+            WMULPurpleMercury::CLI::LoggerSetup.setup_logger(options)
+          rescue ArgumentError => e
+            puts e.message
+            return
+          end
+          
+          logger.info("With #{options}")
+          asciidoc_source_folder = options.fetch(:asciidoc_source_folder)
+          begin
+            asciidoc_source_folder = WMULPurpleMercury::CLI::Validators.validate_source_folder(asciidoc_source_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --asciidoc_source_folder #{e.message}")
+            return
+          end
+          create_intermediate_folder = options.fetch(:create_intermediate_folder)
+          standalone_intermediate_folder = options.fetch(:standalone_intermediate_folder)
+          begin
+            standalone_intermediate_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(standalone_intermediate_folder, create_intermediate_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --standalone_intermediate_folder #{e.message}")
+            return
+          end
+          WMULPurpleMercury::PDFStandalone.build_asciidoc_source_for_standalone(asciidoc_source_folder, standalone_intermediate_folder)
+        end
+      end
+
+
+      class BuildStandalones < Dry::CLI::Command
+        include SemanticLogger::Loggable
+
+        desc "Non-recursively iterates through the asciidoc files in the root of --standalone_build_folder , runs 
+        asciidoctor-pdf on them, and saves the output into --renders_folder. Only .adoc files in the root of 
+        --standalone_build_folder are converted."
+
+        option :standalone_build_folder, default: :emptyoption, 
+          desc: "The root folder containing the asciidoc files to be converted."
+
+        option :renders_folder, default: :emptyoption, 
+          desc: "The location of the renders folder into which the rendered pdf files should be written."
+
+        option :create_renders_folder, default: false, type: :boolean, 
+          desc: "If --renders_folder does not already exist, create it."
+
+        option :log_name, default: :emptyoption, desc: "The path to the log file."
+
+        option :log_level, default: 30, type: :integer, 
+          desc: "The log level: 0: Trace, 10: Debug, 20: Info, 30: Warning, 40: Error, 50: Fatal. Intermediate values 
+                (E.G. 32) are permitted, but will essentially be rounded down (E.G. Entering 32 is the same as entering 
+                30. Values beyond the 0-50 limit will be clamped to those limits. Logging messages lower than the log 
+                level will not be written to the log. E.G. If 30 is input, then all Debug, Info, and Trace messages 
+                will be silenced."
+
+        def call(**options)
+          begin
+            WMULPurpleMercury::CLI::LoggerSetup.setup_logger(options)
+          rescue ArgumentError => e
+            puts e.message
+            return
+          end
+          
+          logger.info("With #{options}")
+          standalone_build_folder = options.fetch(:standalone_build_folder)
+          begin
+            standalone_build_folder = WMULPurpleMercury::CLI::Validators.validate_source_folder(standalone_build_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --standalone_build_folder #{e.message}")
+            return
+          end
+          create_renders_folder = options.fetch(:create_renders_folder)
+          renders_folder = options.fetch(:renders_folder)
+          begin
+            renders_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(renders_folder, create_renders_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --renders_folder #{e.message}")
+            return
+          end
+          standalone_build_folder = standalone_build_folder.realpath()
+          renders_folder = renders_folder.realpath()
+          WMULPurpleMercury::PDFCommon.build_pdfs(standalone_build_folder, renders_folder, "standalone=true")
+        end
+      end
+
     end
 
 
@@ -903,6 +1014,8 @@ WMULPurpleMercury::CLI::Commands.register "build_asciidoc_source_for_epub", WMUL
 WMULPurpleMercury::CLI::Commands.register "copy_epub_static_folder", WMULPurpleMercury::CLI::Commands::CopyEPubStaticFolder
 WMULPurpleMercury::CLI::Commands.register "build_epubs", WMULPurpleMercury::CLI::Commands::BuildEPubs
 
+WMULPurpleMercury::CLI::Commands.register "build_asciidoc_source_for_standalone", WMULPurpleMercury::CLI::Commands::BuildAsciidocSourceForStandalone
+WMULPurpleMercury::CLI::Commands.register "build_standalones", WMULPurpleMercury::CLI::Commands::BuildStandalones
 
 WMULPurpleMercury::CLI::Commands.register "copy_rendered_items", WMULPurpleMercury::CLI::Commands::CopyRenderedItems
 

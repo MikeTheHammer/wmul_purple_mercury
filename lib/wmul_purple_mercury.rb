@@ -195,6 +195,20 @@ module WMULPurpleMercury
 
     end
 
+
+
+    module PDFStandalone
+        include SemanticLogger::Loggable
+
+        def self.build_asciidoc_source_for_standalone(asciidoc_source_folder, standalone_intermediate_folder)
+            logger.info("build_asciidoc_source_for_standalone:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Standalone Intermediate Folder: #{standalone_intermediate_folder}")
+            excluded_suffixes = Array.new(WMULPurpleMercury::ALL_SUFFIXES)
+            excluded_suffixes.delete(".standalone")
+            WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, standalone_intermediate_folder, excluded_suffixes, ".standalone", "pdf", true)
+        end
+    end
+
+
     module PDFCommon
         include SemanticLogger::Loggable
 
