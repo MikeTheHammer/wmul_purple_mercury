@@ -106,6 +106,10 @@ module WMULPurpleMercury
             logger.info("copy_rendered_items:: Source Folder: #{source_folder} , Destination Folder: #{destination_folder}")
             FileUtils.cp_r(source_folder, destination_folder, remove_destination:  true)
         end
+
+        def self.rename_chapter_folder(images_root, attachments_root, old_folder_name, new_folder_name)
+            
+        end
     end
 
 
@@ -229,7 +233,7 @@ module WMULPurpleMercury
         end
 
         def self.convert_asciidoc_file_to_pdf(input_file, output_file, attributes)
-            logger.info("convert_asciidoc_file_to_pdf:: Input File: #{input_file} , Output File: #{output_file}")
+            logger.info("convert_asciidoc_file_to_pdf:: Input File: #{input_file} , Output File: #{output_file}, Attributes: #{attributes}")
             basedir = input_file.parent()
             Dir.chdir(basedir)
             Asciidoctor.convert_file input_file.to_s(), safe: :unsafe, backend: 'pdf', doctype: :book, to_file: output_file.to_s(), attributes: attributes, mkdirs: true, base_dir: basedir.to_s()
