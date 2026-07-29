@@ -258,11 +258,11 @@ module WMULPurpleMercury
 
 
         def self.reduce_asciidoc(source_file, destination_file, backend, book, license)
-            logger.info("reduce_asciidoc:: Source File: #{source_file} , Destination File: #{destination_file} , Backend: #{backend} , Book: #{book}")
+            logger.info("reduce_asciidoc:: Source File: #{source_file} , Destination File: #{destination_file} , Backend: #{backend} , Book: #{book}, License: #{license}")
             if book
-                Asciidoctor::Reducer.reduce_file source_file, safe: :unsafe, to: destination_file, doctype: :book, attributes: "#{backend}=true,license=#{license}"
+                Asciidoctor::Reducer.reduce_file source_file, safe: :unsafe, to: destination_file, doctype: :book, attributes: "#{backend}=true license=#{license}"
             else
-                Asciidoctor::Reducer.reduce_file source_file, safe: :unsafe, to: destination_file, attributes: "#{backend}=true,license=#{license}"
+                Asciidoctor::Reducer.reduce_file source_file, safe: :unsafe, to: destination_file, attributes: "#{backend}=true license=#{license}"
             end
         end
 
