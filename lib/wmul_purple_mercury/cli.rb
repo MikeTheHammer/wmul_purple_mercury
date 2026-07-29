@@ -3,7 +3,7 @@ require "semantic_logger"
 require_relative "../wmul_purple_mercury"
 
 module WMULPurpleMercury
-  VERSION = "0.0.14"
+  VERSION = "0.0.15"
 
   module CLI
     module Commands
@@ -269,6 +269,8 @@ module WMULPurpleMercury
         option :create_intermediate_folder, default: false, type: :boolean, 
           desc: "If --antora_intermediate_folder does not already exist, create it."
 
+        option :license, default: "nd", values: %w[nd sa], desc: "The license value to be passed as an attribute to Asciidoctor Reducer."
+
         option :log_name, default: :emptyoption, desc: "The path to the log file."
 
         option :log_level, default: 30, type: :integer, 
@@ -294,7 +296,9 @@ module WMULPurpleMercury
             logger.fatal("Argument Bad: --asciidoc_source_folder #{e.message}")
             return
           end
+
           create_intermediate_folder = options.fetch(:create_intermediate_folder)
+
           antora_intermediate_folder = options.fetch(:antora_intermediate_folder)
           begin
             antora_intermediate_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(antora_intermediate_folder, create_intermediate_folder)
@@ -302,7 +306,15 @@ module WMULPurpleMercury
             logger.fatal("Argument Bad: --antora_intermediate_folder #{e.message}")
             return
           end
-          WMULPurpleMercury::Antora.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_intermediate_folder)
+
+          license = options.fetch(:license)
+          begin
+            license = WMULPurpleMercury::CLI::Validators.validate_license(license)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --license #{e.message}")
+          end
+
+          WMULPurpleMercury::Antora.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_intermediate_folder, license)
         end
       end
 
@@ -378,6 +390,8 @@ module WMULPurpleMercury
         option :create_intermediate_folder, default: false, type: :boolean, 
           desc: "If --pdf_intermediate_folder does not already exist, create it."
 
+        option :license, default: "nd", values: %w[nd sa], desc: "The license value to be passed as an attribute to Asciidoctor Reducer."
+
         option :log_name, default: :emptyoption, desc: "The path to the log file."
 
         option :log_level, default: 30, type: :integer, 
@@ -403,7 +417,9 @@ module WMULPurpleMercury
             logger.fatal("Argument Bad: --asciidoc_source_folder #{e.message}")
             return
           end
+
           create_intermediate_folder = options.fetch(:create_intermediate_folder)
+
           pdf_intermediate_folder = options.fetch(:pdf_intermediate_folder)
           begin
             pdf_intermediate_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(pdf_intermediate_folder, create_intermediate_folder)
@@ -411,7 +427,15 @@ module WMULPurpleMercury
             logger.fatal("Argument Bad: --pdf_intermediate_folder #{e.message}")
             return
           end
-          WMULPurpleMercury::PDFBook.build_asciidoc_source_for_pdf(asciidoc_source_folder, pdf_intermediate_folder)
+
+          license = options.fetch(:license)
+          begin
+            license = WMULPurpleMercury::CLI::Validators.validate_license(license)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --license #{e.message}")
+          end
+
+          WMULPurpleMercury::PDFBook.build_asciidoc_source_for_pdf(asciidoc_source_folder, pdf_intermediate_folder, license)
         end
       end
 
@@ -601,6 +625,8 @@ module WMULPurpleMercury
         option :create_intermediate_folder, default: false, type: :boolean, 
           desc: "If --epub_intermediate_folder does not already exist, create it."
 
+        option :license, default: "nd", values: %w[nd sa], desc: "The license value to be passed as an attribute to Asciidoctor Reducer."
+
         option :log_name, default: :emptyoption, desc: "The path to the log file."
 
         option :log_level, default: 30, type: :integer, 
@@ -626,7 +652,9 @@ module WMULPurpleMercury
             logger.fatal("Argument Bad: --asciidoc_source_folder #{e.message}")
             return
           end
+
           create_intermediate_folder = options.fetch(:create_intermediate_folder)
+
           epub_intermediate_folder = options.fetch(:epub_intermediate_folder)
           begin
             epub_intermediate_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(epub_intermediate_folder, create_intermediate_folder)
@@ -634,7 +662,15 @@ module WMULPurpleMercury
             logger.fatal("Argument Bad: --epub_intermediate_folder #{e.message}")
             return
           end
-          WMULPurpleMercury::EPub.build_asciidoc_source_for_epub(asciidoc_source_folder, epub_intermediate_folder)
+
+          license = options.fetch(:license)
+          begin
+            license = WMULPurpleMercury::CLI::Validators.validate_license(license)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --license #{e.message}")
+          end
+
+          WMULPurpleMercury::EPub.build_asciidoc_source_for_epub(asciidoc_source_folder, epub_intermediate_folder, license)
         end
       end
 
@@ -766,6 +802,8 @@ module WMULPurpleMercury
         option :create_intermediate_folder, default: false, type: :boolean, 
           desc: "If --standalone_intermediate_folder does not already exist, create it."
 
+        option :license, default: "nd", values: %w[nd sa], desc: "The license value to be passed as an attribute to Asciidoctor Reducer."
+
         option :log_name, default: :emptyoption, desc: "The path to the log file."
 
         option :log_level, default: 30, type: :integer, 
@@ -791,7 +829,9 @@ module WMULPurpleMercury
             logger.fatal("Argument Bad: --asciidoc_source_folder #{e.message}")
             return
           end
+
           create_intermediate_folder = options.fetch(:create_intermediate_folder)
+          
           standalone_intermediate_folder = options.fetch(:standalone_intermediate_folder)
           begin
             standalone_intermediate_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(standalone_intermediate_folder, create_intermediate_folder)
@@ -799,7 +839,15 @@ module WMULPurpleMercury
             logger.fatal("Argument Bad: --standalone_intermediate_folder #{e.message}")
             return
           end
-          WMULPurpleMercury::PDFStandalone.build_asciidoc_source_for_standalone(asciidoc_source_folder, standalone_intermediate_folder)
+
+          license = options.fetch(:license)
+          begin
+            license = WMULPurpleMercury::CLI::Validators.validate_license(license)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --license #{e.message}")
+          end
+          
+          WMULPurpleMercury::PDFStandalone.build_asciidoc_source_for_standalone(asciidoc_source_folder, standalone_intermediate_folder, license)
         end
       end
 

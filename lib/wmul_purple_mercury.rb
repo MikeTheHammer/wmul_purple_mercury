@@ -117,11 +117,11 @@ module WMULPurpleMercury
     module Antora
         include SemanticLogger::Loggable
 
-        def self.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_intermediate_folder)
-            logger.info("build_asciidoc_source_for_antora:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Antora Intermediate Folder: #{antora_intermediate_folder}")
+        def self.build_asciidoc_source_for_antora(asciidoc_source_folder, antora_intermediate_folder, license)
+            logger.info("build_asciidoc_source_for_antora:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Antora Intermediate Folder: #{antora_intermediate_folder}, License: #{license}")
             excluded_suffixes = Array.new(WMULPurpleMercury::ALL_SUFFIXES)
             excluded_suffixes.delete(".antora")
-            WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, antora_intermediate_folder, excluded_suffixes, ".antora", "antora", false)
+            WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, antora_intermediate_folder, excluded_suffixes, ".antora", "antora", false, license)
         end
 
         def self.copy_antora_static_folder(antora_static_folder, antora_build_folder)
@@ -136,11 +136,11 @@ module WMULPurpleMercury
     module PDFBook
         include SemanticLogger::Loggable
 
-        def self.build_asciidoc_source_for_pdf(asciidoc_source_folder, pdf_intermediate_folder)
-            logger.info("build_asciidoc_source_for_pdf:: AsciiDoc Source Folder: #{asciidoc_source_folder} , PDF Intermediate Folder: #{pdf_intermediate_folder}")
+        def self.build_asciidoc_source_for_pdf(asciidoc_source_folder, pdf_intermediate_folder, license)
+            logger.info("build_asciidoc_source_for_pdf:: AsciiDoc Source Folder: #{asciidoc_source_folder} , PDF Intermediate Folder: #{pdf_intermediate_folder}, License: #{license}")
             excluded_suffixes = Array.new(WMULPurpleMercury::ALL_SUFFIXES)
             excluded_suffixes.delete(".pdf")
-            WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, pdf_intermediate_folder, excluded_suffixes, ".pdf", "pdf", true)
+            WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, pdf_intermediate_folder, excluded_suffixes, ".pdf", "pdf", true, license)
         end
 
         def self.build_prebuild_asciidocs_to_pdf(asciidoc_source_folder, pdf_build_folder)
@@ -163,11 +163,11 @@ module WMULPurpleMercury
     module EPub
         include SemanticLogger::Loggable
 
-        def self.build_asciidoc_source_for_epub(asciidoc_source_folder, epub_intermediate_folder)
-            logger.info("build_asciidoc_source_for_epub:: AsciiDoc Source Folder: #{asciidoc_source_folder} , ePub Intermediate Folder: #{epub_intermediate_folder}")
+        def self.build_asciidoc_source_for_epub(asciidoc_source_folder, epub_intermediate_folder, license)
+            logger.info("build_asciidoc_source_for_epub:: AsciiDoc Source Folder: #{asciidoc_source_folder} , ePub Intermediate Folder: #{epub_intermediate_folder}, License: #{license}")
             excluded_suffixes = Array.new(WMULPurpleMercury::ALL_SUFFIXES)
             excluded_suffixes.delete(".epub")
-            WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, epub_intermediate_folder, excluded_suffixes, ".epub", "epub", true)
+            WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, epub_intermediate_folder, excluded_suffixes, ".epub", "epub", true, license)
         end
 
 
@@ -204,11 +204,11 @@ module WMULPurpleMercury
     module PDFStandalone
         include SemanticLogger::Loggable
 
-        def self.build_asciidoc_source_for_standalone(asciidoc_source_folder, standalone_intermediate_folder)
-            logger.info("build_asciidoc_source_for_standalone:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Standalone Intermediate Folder: #{standalone_intermediate_folder}")
+        def self.build_asciidoc_source_for_standalone(asciidoc_source_folder, standalone_intermediate_folder, license)
+            logger.info("build_asciidoc_source_for_standalone:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Standalone Intermediate Folder: #{standalone_intermediate_folder}, License: #{license}")
             excluded_suffixes = Array.new(WMULPurpleMercury::ALL_SUFFIXES)
             excluded_suffixes.delete(".standalone")
-            WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, standalone_intermediate_folder, excluded_suffixes, ".standalone", "standalone", true)
+            WMULPurpleMercury::BuildCommon.build_asciidoc_source(asciidoc_source_folder, standalone_intermediate_folder, excluded_suffixes, ".standalone", "standalone", true, license)
         end
     end
 
@@ -245,24 +245,24 @@ module WMULPurpleMercury
     module BuildCommon
         include SemanticLogger::Loggable
 
-        def self.build_asciidoc_source(asciidoc_source_folder, build_folder, excluded_suffixes, middle_suffix, backend, book)
-            logger.info("build_asciidoc_source:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Build Folder: #{build_folder} , Excluded Suffixes: #{excluded_suffixes} , Backend: #{backend} , Book: #{book}")
+        def self.build_asciidoc_source(asciidoc_source_folder, build_folder, excluded_suffixes, middle_suffix, backend, book, license)
+            logger.info("build_asciidoc_source:: AsciiDoc Source Folder: #{asciidoc_source_folder} , Build Folder: #{build_folder} , Excluded Suffixes: #{excluded_suffixes} , Backend: #{backend} , Book: #{book}, License: #{license}")
             asciidoc_source_files = WMULPurpleMercury::FileNameManager.get_sorted_file_names(asciidoc_source_folder, build_folder, input_suffix: ".adoc")
             asciidoc_source_files.each do |file_pair|
                 unless WMULPurpleMercury::FileNameManager::file_name_contains_any_suffix?(file_pair.source_file_name, excluded_suffixes)
                     destination_file_name = WMULPurpleMercury::FileNameManager.strip_middle_suffix_from_filename(file_pair.destination_file_name, middle_suffix)
-                    WMULPurpleMercury::BuildCommon.reduce_asciidoc(file_pair.source_file_name, destination_file_name, backend, book)
+                    WMULPurpleMercury::BuildCommon.reduce_asciidoc(file_pair.source_file_name, destination_file_name, backend, book, license)
                 end
             end
         end
 
 
-        def self.reduce_asciidoc(source_file, destination_file, backend, book)
+        def self.reduce_asciidoc(source_file, destination_file, backend, book, license)
             logger.info("reduce_asciidoc:: Source File: #{source_file} , Destination File: #{destination_file} , Backend: #{backend} , Book: #{book}")
             if book
-                Asciidoctor::Reducer.reduce_file source_file, safe: :unsafe, to: destination_file, doctype: :book, attributes: "#{backend}=true"
+                Asciidoctor::Reducer.reduce_file source_file, safe: :unsafe, to: destination_file, doctype: :book, attributes: "#{backend}=true,license=#{license}"
             else
-                Asciidoctor::Reducer.reduce_file source_file, safe: :unsafe, to: destination_file, attributes: "#{backend}=true"
+                Asciidoctor::Reducer.reduce_file source_file, safe: :unsafe, to: destination_file, attributes: "#{backend}=true,license=#{license}"
             end
         end
 
