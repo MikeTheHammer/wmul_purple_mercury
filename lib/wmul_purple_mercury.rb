@@ -331,11 +331,12 @@ module WMULPurpleMercury
                         logger.info("get_sorted_file_names_excluding_folders:: Source File Name #{source_file_name} is excluded.")
                     else
                         logger.info("get_sorted_file_names_excluding_folders:: Source File Name #{source_file_name} is not excluded.")
-                        file_paths = file_paths + WMULPurpleMercury::FileNameManager.get_sorted_file_names_excluding_folders(source_file_name, source_root, output_root, exclude_folders)
+                        new_output_folder = output_root + source_file_name.basename
+                        file_paths = file_paths + WMULPurpleMercury::FileNameManager.get_sorted_file_names_excluding_folders(source_file_name, source_root, new_output_folder, exclude_folders)
                     end
                 else
                     logger.info("get_sorted_file_names_excluding_folders:: Is File!")
-                    destination_file_name = output_root + file_name
+                    destination_file_name = output_root + source_file_name.basename
                     logger.info("get_sorted_file_names_excluding_folders:: File Pair:: Source File Name: #{source_file_name} , Destination File Name: #{destination_file_name}")
                     fp = FilePair.new(source_file_name, destination_file_name)
                     file_paths << fp
