@@ -290,7 +290,9 @@ module WMULPurpleMercury
             logger.info("publish_to_sa_repo:: Original Folder: #{original_folder} , Destination Folder: #{destination_folder}, Exclude Folders: #{exclude_folders}")
 
             file_list = WMULPurpleMercury::FileNameManager.get_sorted_file_names_excluding_folders(original_folder, original_folder, destination_folder, exclude_folders)
+            logger.info("publish_to_sa_repo:: Received file_list")
             file_list.each do |file_pair|
+                logger.info("publish_to_sa_repo:: working on #{file_pair}")
                 source_file = file_pair.source_file_name
                 destination_file = file_pair.destination_file_name
                 FileUtils.copy_file(source_file, destination_file)
