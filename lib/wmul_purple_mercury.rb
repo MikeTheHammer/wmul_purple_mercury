@@ -323,7 +323,7 @@ module WMULPurpleMercury
             logger.info("get_sorted_file_names_excluding_folders:: This Folder: #{this_folder}, Source Root: #{source_root} , Output Root: #{output_root} , Exclude Folders: #{exclude_folders}")
             file_paths = []
 
-            source_root.each_child do |source_file_name|
+            this_folder.each_child do |source_file_name|
                 logger.info("get_sorted_file_names_excluding_folders:: Examining: #{source_file_name}")
                 if source_file_name.directory?
                     logger.info("get_sorted_file_names_excluding_folders:: Is Directory!")
