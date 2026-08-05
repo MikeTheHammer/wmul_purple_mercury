@@ -295,6 +295,8 @@ module WMULPurpleMercury
                 logger.info("publish_to_sa_repo:: working on #{file_pair}")
                 source_file = file_pair.source_file_name
                 destination_file = file_pair.destination_file_name
+                destination_parent = destination_file.parent
+                destination_parent.mkpath
                 FileUtils.copy_file(source_file, destination_file)
             end
         end
