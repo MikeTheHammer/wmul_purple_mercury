@@ -3,7 +3,7 @@ require "semantic_logger"
 require_relative "../wmul_purple_mercury"
 
 module WMULPurpleMercury
-  VERSION = "0.0.16"
+  VERSION = "0.0.17"
 
   module CLI
     module Commands
@@ -785,6 +785,7 @@ module WMULPurpleMercury
 
 
       # Standalone
+
       class BuildAsciidocSourceForStandalone < Dry::CLI::Command
         include SemanticLogger::Loggable
 
@@ -906,6 +907,69 @@ module WMULPurpleMercury
           WMULPurpleMercury::PDFCommon.build_pdfs(standalone_build_folder, renders_folder, "standalone=true")
         end
       end
+
+
+      # Publish
+      
+      class PublishToSARepo < Dry::CLI::Command
+        include SemanticLogger::Loggable
+
+        desc "Copies all of the common license and share-alike licensed files files from the original repo to the share-alike repo.." 
+
+        option :original_folder, default: :emptyoption, 
+          desc: "The folder containing the full source repo."
+
+        option :destination_folder, default: :emptyoption, 
+          desc: "The folder containing the share-alike repo."
+
+        option :exclude_folders, type: :array, default: [], desc: "A list of folders to exclude when copying."
+
+        option :log_name, default: :emptyoption, desc: "The path to the log file."
+
+        option :log_level, default: 30, type: :integer, 
+          desc: "The log level: 0: Trace, 10: Debug, 20: Info, 30: Warning, 40: Error, 50: Fatal. Intermediate values 
+                (E.G. 32) are permitted, but will essentially be rounded down (E.G. Entering 32 is the same as entering 
+                30. Values beyond the 0-50 limit will be clamped to those limits. Logging messages lower than the log 
+                level will not be written to the log. E.G. If 30 is input, then all Debug, Info, and Trace messages 
+                will be silenced."
+
+        def call(**options)
+          begin
+            WMULPurpleMercury::CLI::LoggerSetup.setup_logger(options)
+          rescue ArgumentError => e
+            puts e.message
+            return
+          end
+          
+          logger.info("With #{options}")
+          original_folder = options.fetch(:original_folder)
+          begin
+            original_folder = WMULPurpleMercury::CLI::Validators.validate_source_folder(original_folder)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --original_folder #{e.message}")
+            return
+          end
+
+          destination_folder = options.fetch(:destination_folder)
+          begin
+            destination_folder = WMULPurpleMercury::CLI::Validators.validate_build_folder(destination_folder, true)
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --destination_folder #{e.message}")
+            return
+          end
+
+          exclude_folders = options.fetch(:exclude_folders)
+          begin
+            exclude_folders = exclude_folders.map { |ef| WMULPurpleMercury::CLI::Validators.validate_source_folder(ef) }
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --exclude_folders #{e.message}")
+            return
+          end
+
+          WMULPurpleMercury::Publish.publish_to_sa_repo(original_folder, destination_folder, exclude_folders)
+        end
+      end
+
 
     end
 
@@ -1066,6 +1130,8 @@ WMULPurpleMercury::CLI::Commands.register "build_asciidoc_source_for_standalone"
 WMULPurpleMercury::CLI::Commands.register "build_standalones", WMULPurpleMercury::CLI::Commands::BuildStandalones
 
 WMULPurpleMercury::CLI::Commands.register "copy_rendered_items", WMULPurpleMercury::CLI::Commands::CopyRenderedItems
+
+WMULPurpleMercury::CLI::Commands.register "publish_to_sa_repo", WMULPurpleMercury::CLI::Commands::PublishToSARepo
 
 WMULPurpleMercury::CLI::Commands.register "version",  WMULPurpleMercury::CLI::Commands::Version
 WMULPurpleMercury::CLI::Commands.register "v",  WMULPurpleMercury::CLI::Commands::Version

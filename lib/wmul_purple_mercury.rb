@@ -113,7 +113,6 @@ module WMULPurpleMercury
     end
 
 
-
     module Antora
         include SemanticLogger::Loggable
 
@@ -159,7 +158,6 @@ module WMULPurpleMercury
     end
 
 
-
     module EPub
         include SemanticLogger::Loggable
 
@@ -200,7 +198,6 @@ module WMULPurpleMercury
     end
 
 
-
     module PDFStandalone
         include SemanticLogger::Loggable
 
@@ -239,7 +236,6 @@ module WMULPurpleMercury
             Asciidoctor.convert_file input_file.to_s(), safe: :unsafe, backend: 'pdf', doctype: :book, to_file: output_file.to_s(), attributes: attributes, mkdirs: true, base_dir: basedir.to_s()
         end
     end
-
 
 
     module BuildCommon
@@ -287,6 +283,22 @@ module WMULPurpleMercury
     end
 
 
+    module Publish
+        include SemanticLogger::Loggable
+
+        def self.publish_to_sa_repo(original_folder, destination_folder, exclude_folders)
+            logger.info("publish_to_sa_repo:: Original Folder: #{original_folder} , Destination Folder: #{destination_folder}, Exclude Folders: #{exclude_folders}")
+
+            file_list = WMULPurpleMercury::FileNameManager.get_sorted_file_names_excluding_folders(original_folder, original_folder, destination_folder, exclude_folders)
+            file_list.each do |file_pair|
+                source_file = file_pair.source_file_name
+                destination_file = file_pair.destination_file_name
+                FileUtils.copy_file(source_file, destination_file)
+            end
+        end
+    end
+
+
 
     module FileNameManager
         include SemanticLogger::Loggable
@@ -303,6 +315,27 @@ module WMULPurpleMercury
                 logger.info("get_sorted_file_names:: File Pair:: Source File Name: #{source_file_name} , Destination File Name: #{destination_file_name}")
                 fp = FilePair.new(source_file_name, destination_file_name)
                 file_paths << fp
+            end
+            return file_paths
+        end
+
+        def self.get_sorted_file_names_excluding_folders(this_folder, source_root, output_root, exclude_folders)
+            logger.info("get_sorted_file_names_excluding_folders:: This Folder: #{this_folder}, Source Root: #{source_root} , Output Root: #{output_root} , Exclude Folders: #{exclude_folders}")
+            file_paths = []
+
+            source_root.each_child do |source_file_name|
+                if source_file_name.directory?
+                    if exclude_folders.include?(source_file_name)
+                        logger.info("get_sorted_file_names_excluding_folders:: Source File Name #{source_file_name} is excluded.")
+                    else
+                        file_paths = file_paths + WMULPurpleMercury::FileNameManager.get_sorted_file_names_excluding_folders(source_file_name, source_root, output_root, exclude_folders)
+                    end
+                else
+                    destination_file_name = output_root + file_name
+                    logger.info("get_sorted_file_names_excluding_folders:: File Pair:: Source File Name: #{source_file_name} , Destination File Name: #{destination_file_name}")
+                    fp = FilePair.new(source_file_name, destination_file_name)
+                    file_paths << fp
+                end
             end
             return file_paths
         end
