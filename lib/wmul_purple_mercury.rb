@@ -342,7 +342,7 @@ module WMULPurpleMercury
                     end
                 else
                     logger.info("get_sorted_file_names_excluding_folders:: Is File!")
-                    if exclude_files.include(source_file_name)
+                    if exclude_files.include?(source_file_name)
                         logger.info("get_sorted_file_names_excluding_folders:: Source File Name #{source_file_name} is excluded.")
                     else
                         destination_file_name = output_root + source_file_name.basename
