@@ -338,7 +338,7 @@ module WMULPurpleMercury
                     else
                         logger.info("get_sorted_file_names_excluding_folders:: Source File Name #{source_file_name} is not excluded.")
                         new_output_folder = output_root + source_file_name.basename
-                        file_paths = file_paths + WMULPurpleMercury::FileNameManager.get_sorted_file_names_excluding_folders(source_file_name, source_root, new_output_folder, exclude_folders)
+                        file_paths = file_paths + WMULPurpleMercury::FileNameManager.get_sorted_file_names_excluding_folders(source_file_name, source_root, new_output_folder, exclude_folders, exclude_files)
                     end
                 else
                     logger.info("get_sorted_file_names_excluding_folders:: Is File!")
