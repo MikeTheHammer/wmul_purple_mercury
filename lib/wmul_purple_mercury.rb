@@ -333,6 +333,8 @@ module WMULPurpleMercury
                     logger.info("get_sorted_file_names_excluding_folders:: Is Directory!")
                     if exclude_folders.include?(source_file_name)
                         logger.info("get_sorted_file_names_excluding_folders:: Source File Name #{source_file_name} is excluded.")
+                    elsif source_file_name.symlink?
+                        logger.info("get_sorted_file_names_excluding_folders:: Source File Name #{source_file_name} is a symlink.")
                     else
                         logger.info("get_sorted_file_names_excluding_folders:: Source File Name #{source_file_name} is not excluded.")
                         new_output_folder = output_root + source_file_name.basename
