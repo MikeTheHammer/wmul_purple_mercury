@@ -3,7 +3,7 @@ require "semantic_logger"
 require_relative "../wmul_purple_mercury"
 
 module WMULPurpleMercury
-  VERSION = "0.0.23"
+  VERSION = "0.0.24"
 
   module CLI
     module Commands
@@ -924,6 +924,8 @@ module WMULPurpleMercury
 
         option :exclude_folders, type: :array, default: [], desc: "A list of folders to exclude when copying."
 
+        option :exclude_files, type: :array, default: [], desc: "A list of files to exclude when copying."
+
         option :log_name, default: :emptyoption, desc: "The path to the log file."
 
         option :log_level, default: 30, type: :integer, 
@@ -960,13 +962,21 @@ module WMULPurpleMercury
 
           exclude_folders = options.fetch(:exclude_folders)
           begin
-            exclude_folders = exclude_folders.map { |ef| WMULPurpleMercury::CLI::Validators.validate_source_folder(ef) }
+            exclude_folders = exclude_folders.map { |ef| WMULPurpleMercury::CLI::Validators.validate_exclude_folder(ef) }
           rescue ArgumentError => e
             logger.fatal("Argument Bad: --exclude_folders #{e.message}")
             return
           end
 
-          WMULPurpleMercury::Publish.publish_to_sa_repo(original_folder, destination_folder, exclude_folders)
+          exclude_files = options.fetch(:exclude_files)
+          begin
+            exclude_files = exclude_files.map { |ef| WMULPurpleMercury::CLI::Validators.validate_exclude_file(ef) }
+          rescue ArgumentError => e
+            logger.fatal("Argument Bad: --exclude_files #{e.message}")
+            return
+          end
+
+          WMULPurpleMercury::Publish.publish_to_sa_repo(original_folder, destination_folder, exclude_folders, exclude_files)
         end
       end
 
@@ -994,6 +1004,27 @@ module WMULPurpleMercury
         return source_folder_path
       end
 
+      def self.validate_exclude_folder(exclude_folder)
+        logger.info("validate_exclude_folder:: #{exclude_folder}")
+        exclude_folder_path = Pathname.new(exclude_folder)
+        if exclude_folder_path.exist?()
+          unless exclude_folder_path.directory?()
+            raise ArgumentError.new("#{exclude_folder_path} exists, but is not a folder.")
+          end
+        end
+        return exclude_folder_path
+      end
+
+      def self.validate_exclude_file(exclude_file)
+        logger.info("validate_exclude_file:: #{exclude_file}")
+        exclude_file_path = Pathname.new(exclude_file)
+        if exclude_file_path.exist?()
+          unless exclude_file_path.file?()
+            raise ArgumentError.new("#{exclude_file_path} exists, but is not a file.")
+          end
+        end
+        return exclude_file_path
+      end
 
       def self.validate_build_folder(build_folder, create_build_folder)
         logger.info("validate_build_folder:: #{build_folder}")

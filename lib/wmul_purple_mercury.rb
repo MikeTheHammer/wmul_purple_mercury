@@ -286,10 +286,10 @@ module WMULPurpleMercury
     module Publish
         include SemanticLogger::Loggable
 
-        def self.publish_to_sa_repo(original_folder, destination_folder, exclude_folders)
-            logger.info("publish_to_sa_repo:: Original Folder: #{original_folder} , Destination Folder: #{destination_folder}, Exclude Folders: #{exclude_folders}")
+        def self.publish_to_sa_repo(original_folder, destination_folder, exclude_folders, exclude_files)
+            logger.info("publish_to_sa_repo:: Original Folder: #{original_folder} , Destination Folder: #{destination_folder}, Exclude Folders: #{exclude_folders}, Exclude Files: #{exclude_files}")
 
-            file_list = WMULPurpleMercury::FileNameManager.get_sorted_file_names_excluding_folders(original_folder, original_folder, destination_folder, exclude_folders)
+            file_list = WMULPurpleMercury::FileNameManager.get_sorted_file_names_excluding_folders(original_folder, original_folder, destination_folder, exclude_folders, exclude_files)
             logger.info("publish_to_sa_repo:: Received file_list")
             file_list.each do |file_pair|
                 logger.info("publish_to_sa_repo:: working on #{file_pair}")
@@ -323,8 +323,8 @@ module WMULPurpleMercury
             return file_paths
         end
 
-        def self.get_sorted_file_names_excluding_folders(this_folder, source_root, output_root, exclude_folders)
-            logger.info("get_sorted_file_names_excluding_folders:: This Folder: #{this_folder}, Source Root: #{source_root} , Output Root: #{output_root} , Exclude Folders: #{exclude_folders}")
+        def self.get_sorted_file_names_excluding_folders(this_folder, source_root, output_root, exclude_folders, exclude_files)
+            logger.info("get_sorted_file_names_excluding_folders:: This Folder: #{this_folder}, Source Root: #{source_root} , Output Root: #{output_root} , Exclude Folders: #{exclude_folders}, Exclude Files: #{exclude_files}")
             file_paths = []
 
             this_folder.each_child do |source_file_name|
@@ -342,10 +342,14 @@ module WMULPurpleMercury
                     end
                 else
                     logger.info("get_sorted_file_names_excluding_folders:: Is File!")
-                    destination_file_name = output_root + source_file_name.basename
-                    logger.info("get_sorted_file_names_excluding_folders:: File Pair:: Source File Name: #{source_file_name} , Destination File Name: #{destination_file_name}")
-                    fp = FilePair.new(source_file_name, destination_file_name)
-                    file_paths << fp
+                    if exclude_files.include(source_file_name)
+                        logger.info("get_sorted_file_names_excluding_folders:: Source File Name #{source_file_name} is excluded.")
+                    else
+                        destination_file_name = output_root + source_file_name.basename
+                        logger.info("get_sorted_file_names_excluding_folders:: File Pair:: Source File Name: #{source_file_name} , Destination File Name: #{destination_file_name}")
+                        fp = FilePair.new(source_file_name, destination_file_name)
+                        file_paths << fp
+                    end
                 end
             end
             return file_paths
